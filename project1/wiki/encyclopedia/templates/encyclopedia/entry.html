@@ -1,0 +1,22 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block body %}
+    {% if entry %}
+        {{ entry|safe }}
+        <br>
+        <form action="{% url 'edit_page' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="entry" value="{{ title }}">
+            <input type="hidden" name="option" value="edit">
+            <input type="submit" value="✏️" style="border: none; background-color: white;">
+        </form>
+    {% else %}
+    <br>
+        <h1>404</h1>
+        <h5>The requested page <b>"{{ title.capitalize }}"</b> was not found.</h5>
+    {% endif %}
+{% endblock %}

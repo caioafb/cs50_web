@@ -8,7 +8,8 @@
     <h1>Edit Entry</h1>
     <form action="{% url 'edit_page' %}" method="POST" style="width: 50%;">
         {% csrf_token %}
-        <input class="search" type="text" name="title" value="{{ title }}" disabled>
+        <input class="search" type="text" name="disabled" value="{{ title }}" disabled>
+        <input type="hidden" name="title" value="{{ title }}">
         <br><br>
         <textarea class="search" name="content" style="height: 500px;">{{ entry }}</textarea>
         <input type="hidden" name="option" value="save">

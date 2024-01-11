@@ -11,8 +11,8 @@ def index(request):
         md_to_html = Markdown()
         search = request.POST["q"]
 
-        if util.get_entry(search.capitalize()):
-            entry = util.get_entry(search.capitalize())
+        if util.get_entry(search.title()):
+            entry = util.get_entry(search.title())
         elif util.get_entry(search.upper()):
             entry = util.get_entry(search.upper())
         else:
@@ -40,8 +40,8 @@ def index(request):
 
 def entry(request, title):
     md_to_html = Markdown()
-    if util.get_entry(title.capitalize()):
-        entry = util.get_entry(title.capitalize())
+    if util.get_entry(title.title()):
+        entry = util.get_entry(title.title())
     elif util.get_entry(title.upper()):
         entry = util.get_entry(title.upper())
     else:
@@ -62,8 +62,8 @@ def new_page(request):
         title = request.POST["title"]
         content = request.POST["content"]
         
-        if util.get_entry(title.capitalize()):
-            entry = util.get_entry(title.capitalize())
+        if util.get_entry(title.title()):
+            entry = util.get_entry(title.title())
         elif util.get_entry(title.upper()):
             entry = util.get_entry(title.upper())
         else:

@@ -1,0 +1,17 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Create Listing</h2>
+
+    {% if has_categories %}
+        <form action="{% url 'create_listing' %}" method="post">
+            {% csrf_token %}
+            {{ form }}
+            <input type="submit">
+        </form>
+    {% endif %}
+    <br>
+    <a href="{% url 'new_category' %}">Add new category</a>
+
+
+{% endblock %}

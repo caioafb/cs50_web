@@ -5,6 +5,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django import forms
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 from auctions.models import *
 
 from .models import User
@@ -24,10 +26,20 @@ class NewCategoryForm(forms.Form):
     name = forms.CharField(label="Name", max_length=30)
     image = forms.CharField(label="Image URL", max_length=255)
 
+def is_an_url(url_string: str) -> bool:
+    validate_url = URLValidator()
+    try:
+        validate_url(url_string)
+    except ValidationError:
+        return False
+    return True
+
 
 def index(request):
-
-    return render(request, "auctions/index.html")
+    listings = Listing.objects.all()
+    return render(request, "auctions/index.html", {
+        "listings": listings
+    })
 
 
 def login_view(request):
@@ -92,6 +104,8 @@ def create_listing(request):
             starting_bid = form.cleaned_data["starting_bid"]
             due_date = form.cleaned_data["due_date"]
             image = form.cleaned_data["image"]
+            if not is_an_url(image):
+                image = "https://icon-library.com/images/no-picture-available-icon/no-picture-available-icon-1.jpg"
             description = form.cleaned_data["description"]
             category = form.cleaned_data["category"]
             listing = Listing(user=user, title=title, starting_bid=starting_bid, due_date=due_date, image_url=image, description=description, category=category)

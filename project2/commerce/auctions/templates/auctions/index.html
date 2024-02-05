@@ -3,5 +3,22 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    TODO
+    {% for listing in listings %}
+        <div style="display:flex;">
+            <div>
+                <img src="{{ listing.image_url }}" width="500">
+            </div>
+            <div style="margin-left: 20px;">
+                <h4>{{ listing.title }}</h4>
+                <p><b>Price:</b> $ {{ listing.starting_bid }}</p>
+                <p>{{ listing.description }}</p>
+                <p style="color: gray;"><small>Created {{ listing.date }}</small></p>
+            </div>
+        </div>
+        <hr>
+        <br>
+    {% empty %}
+        <br>
+        <h4>- No listing registered yet. -</h4>
+    {% endfor %}
 {% endblock %}

@@ -1,0 +1,78 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {% if listing %}
+        <h2>Listing: {{ listing.title }}</h2>
+        {% if user.is_authenticated %}
+            <form action="{% url 'listing' id=listing.id %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="option" value="watchlist">
+                {% if is_on_watchlist %}
+                    <input type="submit" value="- Watchlist" style="border-radius: 5px; border-style: none; margin-bottom: 5px; background-color: darkgray; color: white;">
+                {% else %}
+                    <input type="submit" value="+ Watchlist" style="border-radius: 5px; border-style: none; margin-bottom: 5px; background-color: darkgray; color: white;">
+                {% endif %}
+            </form>
+        {% endif %}
+        <img src="{{ listing.image_url }}" width="400">
+        <p>{{ listing.description }}</p>
+        <h3>${{ listing.starting_bid }}</h3>
+        <small>{{ bid_count }} bid(s) so far.
+        {% if user_bid_is_highest %}
+            &nbsp;Your bid is the current bid.
+        {% endif %}
+        </small>
+        {% if invalid_bid_message %}
+            <p>{{ invalid_bid_message }}</p>
+        {% endif %}
+        {% if user.is_authenticated and listing.is_active %}
+            {% if user != listing.user %}
+                <form action="{% url 'listing' id=listing.id %}" method="post">
+                    {% csrf_token %}
+                    {{ bid_form }}
+                    <input type="submit" value="Place bid" style="border-radius: 5px; margin-top: 5px; background-color: #4285F4; color: white; border-style: none;">
+                </form>
+            {% else %}
+                <form action="{% url 'listing' id=listing.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="option" value="close_auction">
+                    <input type="submit" value="Close auction" style="border-radius: 5px; margin-top: 5px; background-color: #F4B400; color: white; border-style: none;">
+                </form>
+            {% endif %}
+        {% endif %}
+        {% if not listing.is_active %}
+            <h4>Auction ended.</h4>
+            {% if user_bid_is_highest %}
+                <h4>Congratulation! You have won this auction.</h4>
+            {% endif %}
+        {% endif %}
+        <br><br>
+        <h4>Details</h4>
+        <ul>
+            <li>Category: {{ listing.category }}</li>
+            <li>Listed by: {{ listing.user.username }}</li>
+            <li>Listed on {{ listing.date }}</li>
+        </ul>
+        <br>
+        <h4>Comments:</h4>
+        {% if user.is_authenticated %}
+            <form action="{% url 'listing' id=listing.id %}" method="post">
+                {% csrf_token %}
+                {{ comment_form }}
+                <input type="submit" value="Submit" style="border-radius: 5px; margin-top: 5px; background-color: #4285F4; color: white; border-style: none;">
+            </form>
+            <br>
+        {% endif %}
+        {% for comment in comments %}
+            <h6 style="margin-bottom: 0;">{{ comment.user }}</h6>
+            <small style="color: gray">{{ comment.date}} </small>
+            <p>{{ comment.text }}</p>
+            <hr>
+        {% empty %}
+            <p>- No comments yet. -</p>
+        {% endfor %}
+    {% else %}
+        <h2>Listing not found.</h2>
+    {% endif %}
+
+{% endblock %}

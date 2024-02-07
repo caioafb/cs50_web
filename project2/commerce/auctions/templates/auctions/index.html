@@ -2,23 +2,48 @@
 
 {% block body %}
     <h2>Active Listings</h2>
-
-    {% for listing in listings %}
-        <div style="display:flex;">
-            <div>
-                <img src="{{ listing.image_url }}" width="500">
+    <br><br>
+    {% for listing in active_listings %}
+        <a href="{% url 'listing' id=listing.id %}" style="color:black; text-decoration: none;">
+            <div style="display:flex;">
+                <div>
+                    <img src="{{ listing.image_url }}" width="350">
+                </div>
+                <div style="margin-left: 20px;">
+                    <h4>{{ listing.title }}</h4>
+                    <p><b>Price:</b> ${{ listing.starting_bid }}</p>
+                    <p>{{ listing.description }}</p>
+                    <p style="color: gray;"><small>Created {{ listing.date }}</small></p>
+                </div>
             </div>
-            <div style="margin-left: 20px;">
-                <h4>{{ listing.title }}</h4>
-                <p><b>Price:</b> $ {{ listing.starting_bid }}</p>
-                <p>{{ listing.description }}</p>
-                <p style="color: gray;"><small>Created {{ listing.date }}</small></p>
-            </div>
-        </div>
+        </a>
         <hr>
         <br>
     {% empty %}
         <br>
-        <h4>- No listing registered yet. -</h4>
+        <h4>- No active listing registered. -</h4>
+    {% endfor %}
+    {% if inactive_listings %}
+        <br><br>
+        <hr>
+        <h2>Finished Listings</h2>
+        <br><br>
+    {% endif %}
+    {% for listing in inactive_listings %}
+        <a href="{% url 'listing' id=listing.id %}" style="color:black; text-decoration: none;">
+            <div style="display:flex;">
+                <div>
+                    <img src="{{ listing.image_url }}" width="350" style="filter: grayscale(100%);">
+                </div>
+                <div style="margin-left: 20px;">
+                    <h4>{{ listing.title }}</h4>
+                    <p><b>Price:</b> ${{ listing.starting_bid }}</p>
+                    <p>{{ listing.description }}</p>
+                    <p style="color: gray;"><small>Created {{ listing.date }}</small></p>
+                </div>
+            </div>
+        </a>
+        <hr>
+        <br>
     {% endfor %}
 {% endblock %}

@@ -139,9 +139,11 @@ def new_category(request):
         # Save new category on database
         form = NewCategoryForm(request.POST)
         if form.is_valid():
-            new_name = form.cleaned_data["name"]
-            new_image = form.cleaned_data["image"]
-            category = Category(name=new_name, image_url=new_image)
+            name = form.cleaned_data["name"]
+            image = form.cleaned_data["image"]
+            if not is_an_url(image):
+                image = "https://icon-library.com/images/no-picture-available-icon/no-picture-available-icon-1.jpg"
+            category = Category(name=name, image_url=image)
             category.save()
             return HttpResponseRedirect(reverse("create_listing"))
         
@@ -251,4 +253,35 @@ def listing(request, id):
         "invalid_bid_message":invalid_bid_message,
         "bid_form":NewBidForm,
         "comment_form":NewCommentForm
+    })
+
+
+@login_required
+def watchlist(request):
+    try:
+        watchlist = Watchlist.objects.all().filter(user=request.user)
+    except:
+        watchlist = None
+        
+    return render(request, "auctions/watchlist.html", {
+        "watchlist":watchlist
+    })
+
+def categories(request):
+    try:
+        categories = Category.objects.all().order_by("name")
+    except:
+        categories = None
+
+    return render(request, "auctions/categories.html", {
+        "categories":categories
+    })
+
+def category(request, name):
+    category = Category.objects.get(name=name)
+    listings = category.listings.all()
+
+    return render(request, "auctions/category.html", {
+        "listings": listings,
+        "name":name
     })

@@ -14,7 +14,7 @@ class Category(models.Model):
 
 class Listing(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="listings")
     date = models.DateTimeField(auto_now_add=True)
     starting_bid = models.DecimalField(max_digits=7, decimal_places=2)
     due_date = models.DateField()

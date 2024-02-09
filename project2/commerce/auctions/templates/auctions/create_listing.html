@@ -7,7 +7,7 @@
         <form action="{% url 'create_listing' %}" method="post">
             {% csrf_token %}
             {{ form }}
-            <input type="submit">
+            <input type="submit" value="Submit">
         </form>
     {% endif %}
     <br>

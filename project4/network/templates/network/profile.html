@@ -2,7 +2,7 @@
 
 {% block body %}
     <h2>{{ profile_user }}</h2>
-    {% if profile_user != logged_user %}
+    {% if user.is_authenticated and profile_user != logged_user %}
         <form action="{% url 'profile' username=profile_user.username %}" method="post">
             {% csrf_token %}
             {% if follows %}
@@ -16,9 +16,24 @@
     <h5>Followers: {{ profile_user.followers.count }} &nbsp;&nbsp;&nbsp; Following: {{ profile_user.follows.count }}</h5>
     {% for post in posts %}
         <div class="card">
+            <div class="post-header">
             <p><b>{{ post.user }}</b> <small>on {{ post.date }}</small></p>
-            <p>{{ post.content }}</p>
-            <p class="likes"><small>Likes: {{ post.likes }}</small></p>
+            &nbsp;&nbsp;
+            {% if post.user == user %}
+                <p class="edit" onclick="edit('{{post.id}}', csrfToken = '{{ csrf_token }}')">[Edit]</p>
+            {% endif %}
+            </div>
+            <div id="{{ post.id }}">
+                <p class="content">{{ post.content }}</p>
+                <p class="likes"><small>Likes: {{ post.likes.count }}</small></p>
+            </div>
+            {% if user.is_authenticated %}
+                {% if user in post.likers  %}
+                    <p class="like-button" onclick="update_likes('{{post.id}}', this)">❤️</p>
+                {% else %}
+                    <p class="like-button" onclick="update_likes('{{post.id}}', this)">🩶</p>
+                {% endif %}
+            {% endif %}
         </div>    
     {% empty %}
         <div class="card">

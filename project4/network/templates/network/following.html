@@ -2,16 +2,43 @@
 
 {% block body %}
     <h2>Following Posts</h2>
-    {% for post in posts %}
+    {% for post in page.object_list %}
         <div class="card">
             <p><b><a href="{% url 'profile' post.user.username %}" style="color: black;">{{ post.user }}</a></b> <small>on {{ post.date }}</small></p>
             <p>{{ post.content }}</p>
-            <p class="likes"><small>Likes: {{ post.likes }}</small></p>
+            <div id="{{ post.id }}">
+                <p class="likes"><small>Likes: {{ post.likes.count }}</small></p>
+            </div>
+            {% if user.is_authenticated %}
+                {% if user in post.likers  %}
+                    <p class="like-button" onclick="update_likes('{{post.id}}', this)">❤️</p>
+                {% else %}
+                    <p class="like-button" onclick="update_likes('{{post.id}}', this)">🩶</p>
+                {% endif %}
+            {% endif %}
         </div>    
     {% empty %}
         <div class="card">
             No posts yet.
         </div>
     {% endfor %}
+
+    <nav class="pagination-menu">
+        <ul class="pagination">
+            {% if page.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">&laquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page.previous_page_number }}">Previous</a></li>
+            {% endif %}
+            {% if max_page > 1 %}
+                {% for n in iterator %}
+                    <li class="page-item"><a class="page-link" href="?page={{ n }}">{{ n }}</a></li>
+                {% endfor %}
+            {% endif %}
+            {% if page.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page.paginator.num_pages }}">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
     
 {% endblock %}

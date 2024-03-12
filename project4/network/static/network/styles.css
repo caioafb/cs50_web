@@ -18,3 +18,27 @@ small {
     position: absolute;
     bottom: 0;
 }
+
+.like-button {
+    position: absolute;
+    bottom: 0;
+    left: 60px;
+}
+
+.like-button:hover {
+    cursor: pointer;
+}
+
+.post-header {
+    display: flex;
+}
+
+.edit:hover {
+    cursor: pointer;
+}
+
+.pagination-menu{
+    display: flex;
+    justify-content: center;
+}
+

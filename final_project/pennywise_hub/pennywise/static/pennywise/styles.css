@@ -1,8 +1,120 @@
 .body {
-    margin: 10px;
+    margin: 20px;
 }
 
-.login-form {
+.forms {
     width: 40%;
     margin: auto;
 }
+
+.index-body {
+    margin: auto;
+}
+
+.check-form {
+    display: flex;
+    justify-content: center;
+}
+
+#installments {
+    width: 70px;
+    display: none;
+}
+
+.btn-primary {
+    float: right;
+}
+
+.btn-menu {
+    text-align: center;
+}
+
+.expired-expense {
+    color: red;
+    font-weight: bold;
+}
+
+.expired-income {
+    color: green;
+    font-weight: bold;
+}
+
+.installments {
+    text-align: center;
+}
+
+.amount-box {
+    width: 10%;
+}
+
+.settle-button {
+    color: black;
+    text-align: center;
+}
+
+.settle-button:hover {
+    cursor: pointer;
+}
+
+.settle-description {
+    text-align:right;
+}
+
+@keyframes hide {
+    0% {
+        opacity: 1;
+        height: 100%;
+        line-height: 100%;
+        padding: 20px;
+        margin-bottom: 10px;
+    }
+
+    75% {
+        opacity: 1;
+        height: 100%;
+        line-height: 100%;
+        padding: 20px;
+        margin-bottom: 10px;
+    }
+
+    100% {
+        opacity: 0;
+        height: 0px;
+        line-height: 0px;
+        padding: 0px;
+        margin-bottom: 0px;
+
+    }
+}
+
+#message {
+    animation-name: hide;
+    animation-duration: 3s;
+    animation-fill-mode: forwards;
+}
+
+@keyframes slide-down {
+    0% {
+		transform: translateY(-30%);
+        opacity: 0;
+	}
+
+	100% {
+		transform: translateY(0%);
+        opacity: 100;
+	}		
+}
+
+@keyframes slide-up {
+    0% {
+		transform: translateY(0%);
+        opacity: 100;
+	}
+
+	100% {
+		transform: translateY(-30%);
+        opacity: 0;
+	}		
+}
+
+

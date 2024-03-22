@@ -22,7 +22,7 @@
                             <li class="nav-item"><a class="nav-link active" href="#">Data</a></li>
                             <li class="nav-item"><a class="nav-link active" href="#">Accounts</a></li>
                             <li class="nav-item"><a class="nav-link active" href="#">Categories</a></li>
-                            <li class="nav-item"><a class="nav-link active" href="#"><img src="{% static 'pennywise/plus.svg' %}" alt="Plus icon" width="30" height="30"></a></li>
+                            <li class="nav-item"><a class="nav-link active" href="{% url 'new_transaction' %}"><img src="{% static 'pennywise/plus.svg' %}" alt="Plus icon" width="30" height="30"></a></li>
                         </ul>
                         <ul class="navbar-nav ms-auto mt-2">
                             <li class="nav-item">
@@ -30,8 +30,8 @@
                                     <form action="/swap_company" method="post">
                                         <select class="form-select align-items-center" name="selected_company" id="selected_company" onchange="this.form.submit()">
                                             <option value="none" selected="selected" disabled>Swap company</option>
-                                            {% for company in nav_companies %}
-                                                <option value="#company_id"># Company name</option>
+                                            {% for company in request.session.companies %}
+                                                <option value="{{ company }}">{{ company }}</option>
                                             {% empty %}
                                                 <option>No companies registered</option>
                                             {% endfor %}
@@ -39,8 +39,8 @@
                                     </form>
                                 </div>
                             </li>
-                            <li class="nav-item"><a class="nav-link active" href="#"><strong># Company name</strong></a></li>
-                            <li class="nav-item"><a class="nav-link active" href="#">Settings</a></li>
+                            <li class="nav-item"><a class="nav-link active" href="#"><strong>{{ request.session.company }}</strong></a></li>
+                            <li class="nav-item"><a class="nav-link active" href="{% url 'settings' %}">Settings</a></li>
                             <li class="nav-item"><a class="nav-link active" href="{% url 'logout' %}">Log Out</a></li>
                         </ul>
                     {% else %}
@@ -59,7 +59,7 @@
         </div>
 
     </body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     {% block script %}
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     {% endblock %}
 </html>

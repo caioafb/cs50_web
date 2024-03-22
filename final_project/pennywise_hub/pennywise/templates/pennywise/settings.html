@@ -1,0 +1,56 @@
+{% extends "pennywise/layout.html" %}
+
+{% block body %}
+
+<div class="forms">
+    <h2>Settings</h2>
+    <br>
+    {% if message %}
+        <div id="message" class="alert alert-success">{{ message }}</div>
+    {% elif error %}
+        <div id="message" class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <h4>Category</h4>
+    <form action="{% url 'settings' %}" method="post">
+        {% csrf_token %}
+        <div class="form-floating mb-3">
+            <input class="form-control" autocomplete="off" id="new_category" name="new_category" type="text" maxlength="30" required>
+            <label for="new_category">New category name</label>
+        </div>
+        <div class="check-form">
+            <div class="form-check-inline">
+                <input class="form-check-input" type="radio" id="expense" name="category_type" value="E" checked="checked">
+                <label class="form-check-label" for="category_type">Expense</label>
+            </div>
+            <div class="form-check-inline">
+                <input class="form-check-input" type="radio" id="income" name="category_type" value="I">
+                <label class="form-check-label" for="category_type">Income</label>
+            </div>
+        </div>
+        <input type="hidden" name="option" value="new_category">
+        <input class="btn btn-primary" type="submit" value="Save">
+    </form>
+    <br><br>
+    <hr>
+    <h4>Account</h4>
+    <form action="{% url 'settings' %}" method="post">
+        {% csrf_token %}
+        <div class="form-floating mb-3">
+            <input class="form-control" autocomplete="off" id="new_account" name="new_account" type="text" maxlength="30" required>
+            <label for="new_account">New account name</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input class="form-control" autocomplete="off" id="starting_balance" name="starting_balance" type="number" min="0" step="0.10" value=0 maxlength="30">
+            <label for="new_account">Starting balance</label>
+        </div>
+        <input type="hidden" name="option" value="new_account">
+        <input class="btn btn-primary" type="submit" value="Save">
+    </form>
+    <br><br>
+    <hr>
+
+</div>
+
+
+{% endblock %}

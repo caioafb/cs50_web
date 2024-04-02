@@ -46,10 +46,3 @@ window.onload = () => {
     }
 }
 
-/* 
-// Maintain the current select tab (expense or income)
-if (document.getElementById("current_tab")) {
-        document.getElementById("income-button").click();
-        console.log(document.getElementById("income-button"))
-}  
-*/

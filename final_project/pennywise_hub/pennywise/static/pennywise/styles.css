@@ -21,6 +21,10 @@
     display: none;
 }
 
+button {
+    float:left;
+}
+
 .btn-primary {
     float: right;
 }
@@ -30,17 +34,21 @@
 }
 
 .expired-expense {
-    color: red;
+    color: #DB4437;
     font-weight: bold;
 }
 
 .expired-income {
-    color: green;
+    color: darkgoldenrod;
     font-weight: bold;
 }
 
+.settled {
+    background-color: #0F9D58;
+}
+
 .installments {
-    text-align: center;
+    text-align:center;
 }
 
 .amount-box {

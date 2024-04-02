@@ -20,12 +20,14 @@
             <div id="message" class="alert alert-danger w-25 mx-auto">{{ error }}</div>
         {% endif %}
 
+        <!-- EXPENSE TAB -->
         {% if came_from_income %}
         <div id="expense" style="display:none;">
         {% else %}
         <div id="expense">
         {% endif %}
-            <h2>Expense</h2>
+            <img src="{% static 'pennywise/invoice.svg' %}" alt="Plus icon" width="50" height="50" style="float:left;">
+            <h1>Expense</h1>
             <hr>
             <h4>Today</h4>
             <table class="table table-hover">
@@ -106,6 +108,54 @@
                         <th>Settle</th>
                     </tr>
                 </thead>
+                <tbody>
+                    {% for expense in upcoming_expenses %}
+                        <tr>
+                            <td>{{ expense.description }}</td>
+                            <td>{{ expense.payment_info }}</td>
+                            <td>{{ expense.due_date }}</td>
+                            <td>{{ expense.amount }}</td>
+                            <td>{{ expense.category.name }}</td>
+                            {% if expense.installments %}
+                                <td class="installments">{{ expense.current_installment }}/{{ expense.installments }}</td>
+                            {% else %}
+                                <td class="installments">-</td>
+                            {% endif %}
+                            <td class="settle-button {{ expense.id }}" onclick="showSettle({{ expense.id }})">˅</td>
+                        </tr>
+                        <tr id="{{ expense.id }}" style="display:none">
+                            <td class="settle-description">Settle description:</td>
+                            <form action="{% url 'index' %}" method="post">
+                                {% csrf_token %}
+                                <td colspan="2">
+                                    <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description"></textarea>
+                                </td>
+                                <td class="amount-box">
+                                    <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ expense.amount }}" type="number" min="0" step="0.10">
+                                </td>
+                                <td>
+                                    <input class="form-control today" autocomplete="off" autofocus id="settle_date" name="settle_date" type="date">
+                                </td>
+                                <td>
+                                    <select class="form-select" aria-label="Default select example" name="account_id" id="account_id" required>
+                                        <option value="none" selected="selected" disabled>Account</option>
+                                        {% for account in accounts %}
+                                            <option value="{{ account.id }}">{{ account.name }}</option>
+                                        {% empty %}
+                                            <option value="none" disabled>No accounts yet.</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary" type="submit">Settle</button>
+                                </td>
+                                <input type="hidden" name="transaction_id" value="{{ expense.id }}">
+                            </form>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="7">No data.</td></tr>
+                    {% endfor %}
+                </tbody>
             </table><br>
             <h4>Settled</h4>
             <table class="table table-hover">
@@ -117,17 +167,38 @@
                         <th>Amount</th>
                         <th>Category</th>
                         <th>Installments</th>
-                        <th>Settle</th>
+                        <th>Settled</th>
                     </tr>
                 </thead>
+                <tbody>
+                    {% for expense in settled_expenses %}
+                        <tr class="settled">
+                            <td>{{ expense.description }}</td>
+                            <td>{{ expense.payment_info }}</td>
+                            <td>{{ expense.due_date }}</td>
+                            <td>{{ expense.amount }}</td>
+                            <td>{{ expense.category.name }}</td>
+                            {% if expense.installments %}
+                                <td class="installments">{{ expense.current_installment }}/{{ expense.installments }}</td>
+                            {% else %}
+                                <td class="installments">-</td>
+                            {% endif %}
+                            <td class="settle-button">✓</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="7">No data.</td></tr>
+                    {% endfor %}
+                </tbody>
             </table>
         </div>
+        <!-- INCOME TAB -->
         {% if came_from_income %}
         <div id="income">
         {% else %}
         <div id="income" style="display:none;">
         {% endif %}
-            <h2>Income</h2>
+            <img src="{% static 'pennywise/cash.svg' %}" alt="Plus icon" width="50" height="50" style="float:left;">
+            <h1>Income</h1>
             <hr>
             <h4>Today</h4>
             <table class="table table-hover">
@@ -208,6 +279,54 @@
                         <th>Settle</th>
                     </tr>
                 </thead>
+                <tbody>
+                    {% for income in upcoming_incomes %}
+                        <tr>
+                            <td>{{ income.description }}</td>
+                            <td>{{ income.payment_info }}</td>
+                            <td>{{ income.due_date }}</td>
+                            <td>{{ income.amount }}</td>
+                            <td>{{ income.category.name }}</td>
+                            {% if income.installments %}
+                                <td class="installments">{{ income.current_installment }}/{{ income.installments }}</td>
+                            {% else %}
+                                <td class="installments">-</td>
+                            {% endif %}
+                            <td class="settle-button {{ income.id }}" onclick="showSettle({{ income.id }})">˅</td>
+                        </tr>
+                        <tr id="{{ income.id }}" style="display:none">
+                            <td class="settle-description">Settle description:</td>
+                            <form action="{% url 'index' %}" method="post">
+                                {% csrf_token %}
+                                <td colspan="2">
+                                    <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description"></textarea>
+                                </td>
+                                <td class="amount-box">
+                                    <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ income.amount }}" type="number" min="0" step="0.10">
+                                </td>
+                                <td>
+                                    <input class="form-control today" autocomplete="off" autofocus id="settle_date" name="settle_date" type="date">
+                                </td>
+                                <td>
+                                    <select class="form-select" aria-label="Default select example" name="account_id" id="account_id" required>
+                                        <option value="none" selected="selected" disabled>Account</option>
+                                        {% for account in accounts %}
+                                            <option value="{{ account.id }}">{{ account.name }}</option>
+                                        {% empty %}
+                                            <option value="none" disabled>No accounts yet.</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary" type="submit">Settle</button>
+                                </td>
+                                <input type="hidden" name="transaction_id" value="{{ income.id }}">
+                            </form>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="7">No data.</td></tr>
+                    {% endfor %}
+                </tbody>
             </table><br>
             <h4>Settled</h4>
             <table class="table table-hover">
@@ -219,9 +338,28 @@
                         <th>Amount</th>
                         <th>Category</th>
                         <th>Installments</th>
-                        <th>Settle</th>
+                        <th>Settled</th>
                     </tr>
                 </thead>
+                <tbody>
+                    {% for income in settled_incomes %}
+                        <tr class="settled">
+                            <td>{{ income.description }}</td>
+                            <td>{{ income.payment_info }}</td>
+                            <td>{{ income.due_date }}</td>
+                            <td>{{ income.amount }}</td>
+                            <td>{{ income.category.name }}</td>
+                            {% if income.installments %}
+                                <td class="installments">{{ income.current_installment }}/{{ income.installments }}</td>
+                            {% else %}
+                                <td class="installments">-</td>
+                            {% endif %}
+                            <td class="settle-button">✓</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="7">No data.</td></tr>
+                    {% endfor %}
+                </tbody>
             </table><br>
         </div>
     </div>

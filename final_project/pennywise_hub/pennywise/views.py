@@ -6,6 +6,7 @@ from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from django.core.paginator import Paginator
 
 from .models import User, Company, CompanyUser, Category, Account, Transaction
 
@@ -130,10 +131,10 @@ def index(request):
     upcoming = today + timedelta(15)
     todays_expenses = Transaction.objects.filter(category__type="E", due_date__lte=today, company=request.session["company_id"], settle_date__isnull=True).order_by("due_date")
     upcoming_expenses = Transaction.objects.filter(category__type="E", due_date__range=(today+timedelta(1), upcoming), company=request.session["company_id"], settle_date__isnull=True).order_by("due_date")
-    settled_expenses = Transaction.objects.filter(category__type="E", due_date=today, company=request.session["company_id"], settle_date__isnull=False).order_by("due_date")
+    settled_expenses = Transaction.objects.filter(category__type="E", company=request.session["company_id"], settle_date=today).order_by("due_date")
     todays_incomes = Transaction.objects.filter(category__type="I", due_date__lte=today, company=request.session["company_id"], settle_date__isnull=True).order_by("due_date")
     upcoming_incomes = Transaction.objects.filter(category__type="I", due_date__range=(today+timedelta(1), upcoming), company=request.session["company_id"], settle_date__isnull=True).order_by("due_date")
-    settled_incomes = Transaction.objects.filter(category__type="I", due_date=today, company=request.session["company_id"], settle_date__isnull=False).order_by("due_date")
+    settled_incomes = Transaction.objects.filter(category__type="I", company=request.session["company_id"], settle_date=today).order_by("due_date")
     
     return render(request, "pennywise/index.html", {
         "accounts": accounts,
@@ -186,6 +187,59 @@ def new_transaction(request):
         "income_categories": income_categories,
         "message": message
     })
+
+
+@login_required
+def archive(request):
+    if request.method == "POST":
+        try:
+            from_date = datetime.strptime(request.POST["from_date"], "%Y-%m-%d").date()
+        except ValueError:
+            from_date = None
+        try:
+            to_date = datetime.strptime(request.POST["to_date"], "%Y-%m-%d").date()
+        except ValueError:
+            to_date = None
+        search = request.POST["search"]
+        is_unsettled = bool(request.POST["is_unsettled"])
+        expense_income_option = request.POST["expense_income_option"]
+
+        if(from_date and to_date):
+            search_data = Transaction.objects.filter(company= request.session["company_id"], due_date__gte=from_date, due_date__lte=to_date, description__icontains=search, category__type=expense_income_option, settle_date__isnull=is_unsettled).order_by("due_date")
+        elif(from_date):
+            search_data = Transaction.objects.filter(company= request.session["company_id"], due_date__gte=from_date, description__icontains=search, category__type=expense_income_option, settle_date__isnull=is_unsettled).order_by("due_date")
+        elif(to_date):
+            search_data = Transaction.objects.filter(company= request.session["company_id"], due_date__lte=to_date, description__icontains=search, category__type=expense_income_option, settle_date__isnull=is_unsettled).order_by("due_date")
+        else:
+            search_data = Transaction.objects.filter(company= request.session["company_id"], description__icontains=search, category__type=expense_income_option, settle_date__isnull=is_unsettled).order_by("due_date")
+
+        data_paginator = Paginator(search_data, 10)
+        try:
+            page_num = request.POST['page']
+        except:
+            page_num = None
+        page = data_paginator.get_page(page_num)
+        iterator = range(1,page.paginator.num_pages+1)
+        max_page = max(iterator)
+
+        search_parameters = {
+            "from": from_date,
+            "to": to_date,
+            "search": search,
+            "is_unsettled": is_unsettled,
+            "expense_income_option": expense_income_option
+        }
+
+        return render(request, "pennywise/archive.html", {
+            "search_parameters": search_parameters,
+            "page": page,
+            "iterator": iterator,
+            "max_page": max_page
+        })
+
+
+    return render(request, "pennywise/archive.html")
+
 
 @login_required
 def settings(request):

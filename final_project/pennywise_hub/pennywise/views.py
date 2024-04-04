@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -239,6 +239,109 @@ def archive(request):
 
 
     return render(request, "pennywise/archive.html")
+
+
+@login_required
+def edit(request):
+    
+    if request.method == "POST":
+        transaction = Transaction.objects.get(id=request.POST["transaction_id"])
+        old_amount = float(transaction.amount)
+
+        try:
+            account = Account.objects.get(id=request.POST["account"])
+        except:
+            account = None
+
+        if request.POST["edit"] == "edit_transaction":
+            due_date = datetime.strptime(request.POST["due_date"], "%Y-%m-%d").date()
+            try:
+                settle_date = datetime.strptime(request.POST["settle_date"], "%Y-%m-%d").date()
+            except ValueError:
+                settle_date = None
+
+            category = Category.objects.get(id=request.POST["category"])
+            amount = float(request.POST["amount"])
+            payment_info = request.POST["payment_info"]
+            description = request.POST["description"]
+            settle_description = request.POST["settle_description"]
+            transaction.due_date = due_date
+            print(settle_date)
+            transaction.settle_date = settle_date
+            transaction.category = category
+            transaction.amount = amount
+            transaction.payment_info = payment_info
+            transaction.description = description
+            transaction.settle_description = settle_description
+
+            # Check if transaction has been settled and adjust account balance
+            if (transaction.settle_date):
+                if (transaction.settle_account != account):
+                    old_account = Account.objects.get(id = transaction.settle_account.id)
+                    if (transaction.category.type == "E"):
+                        old_account.balance = float(old_account.balance) + old_amount
+                        account.balance = float(account.balance) - transaction.amount
+                    else:
+                        old_account.balance = float(old_account.balance) - old_amount
+                        account.balance = float(account.balance) + transaction.amount
+                    old_account.save()
+                    account.save()
+                    transaction.settle_account = account
+                else:
+                    if (old_amount != amount):
+                        if (transaction.category.type == "E"):
+                            account.balance = float(account.balance) + old_amount
+                            account.balance = float(account.balance) - amount
+                        else:
+                            account.balance = float(account.balance) - old_amount
+                            account.balance = float(account.balance) + amount
+                        account.save()
+            transaction.save()
+            message = "Transaction edited successfully."
+
+        elif request.POST["edit"] == "delete_transaction":
+            if (transaction.settle_date):
+                if (transaction.category.type == "E"):
+                    account.balance = float(account.balance) + old_amount
+                else:
+                    account.balance = float(account.balance) - old_amount
+                account.save()
+
+            transaction.delete()
+            message = "Transaction deleted successfully."
+
+        return render(request, "pennywise/archive.html", {
+            "message": message
+        })
+    
+    transaction = Transaction.objects.get(id=request.GET.get("transaction_id"))
+    accounts = Account.objects.filter(company=request.session["company_id"])
+    if (transaction.category.type == "E"):
+        categories = Category.objects.filter(type="E").order_by("name")
+    else:
+        categories = Category.objects.filter(type="I").order_by("name")
+        
+    return render(request, "pennywise/edit.html", {
+        "transaction": transaction,
+        "accounts": accounts,
+        "categories": categories
+    })
+
+
+@login_required
+def accounts(request):
+    
+    if request.method == "POST":
+        #TODO
+        pass 
+
+    accounts = Account.objects.filter(company=request.session["company_id"])
+    today = datetime.today().date()
+
+    return render(request, "pennywise/accounts.html", {
+        "accounts": accounts,
+        "today": today
+    })
 
 
 @login_required

@@ -26,7 +26,7 @@
         {% else %}
         <div id="expense">
         {% endif %}
-            <img src="{% static 'pennywise/invoice.svg' %}" alt="Plus icon" width="50" height="50" style="float:left;">
+            <img src="{% static 'pennywise/icons/invoice.svg' %}" alt="Plus icon" width="50" height="50" style="float:left;">
             <h1>Expense</h1>
             <hr>
             <h4>Today</h4>
@@ -59,7 +59,7 @@
                             {% else %}
                                 <td class="installments">-</td>
                             {% endif %}
-                            <td class="settle-button {{ expense.id }}" onclick="showSettle({{ expense.id }})">˅</td>
+                            <td class="slide-down-button {{ expense.id }}" onclick="showMore({{ expense.id }})">˅</td>
                         </tr>
                         <tr id="{{ expense.id }}" style="display:none">
                             <td class="settle-description">Settle description:</td>
@@ -91,7 +91,7 @@
                             </form>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="7">No data.</td></tr>
+                        <tr><td colspan="7">No expired payables.</td></tr>
                     {% endfor %}
                 </tbody>
             </table><br>
@@ -121,7 +121,7 @@
                             {% else %}
                                 <td class="installments">-</td>
                             {% endif %}
-                            <td class="settle-button {{ expense.id }}" onclick="showSettle({{ expense.id }})">˅</td>
+                            <td class="slide-down-button {{ expense.id }}" onclick="showMore({{ expense.id }})">˅</td>
                         </tr>
                         <tr id="{{ expense.id }}" style="display:none">
                             <td class="settle-description">Settle description:</td>
@@ -153,43 +153,45 @@
                             </form>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="7">No data.</td></tr>
+                        <tr><td colspan="7">No upcoming expenses.</td></tr>
                     {% endfor %}
                 </tbody>
             </table><br>
-            <h4>Settled</h4>
-            <table class="table table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Description</th>
-                        <th>Payment Info</th>
-                        <th>Due date</th>
-                        <th>Amount</th>
-                        <th>Category</th>
-                        <th>Installments</th>
-                        <th>Settled</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for expense in settled_expenses %}
-                        <tr class="settled">
-                            <td>{{ expense.description }}</td>
-                            <td>{{ expense.payment_info }}</td>
-                            <td>{{ expense.due_date }}</td>
-                            <td>{{ expense.amount }}</td>
-                            <td>{{ expense.category.name }}</td>
-                            {% if expense.installments %}
-                                <td class="installments">{{ expense.current_installment }}/{{ expense.installments }}</td>
-                            {% else %}
-                                <td class="installments">-</td>
-                            {% endif %}
-                            <td class="settle-button">✓</td>
+            {% if settled_expenses %}
+                <h4>Settled</h4>
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Description</th>
+                            <th>Payment Info</th>
+                            <th>Due date</th>
+                            <th>Amount</th>
+                            <th>Category</th>
+                            <th>Installments</th>
+                            <th>Account</th>
                         </tr>
-                    {% empty %}
-                        <tr><td colspan="7">No data.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for expense in settled_expenses %}
+                            <tr class="settled">
+                                <td>{{ expense.description }}</td>
+                                <td>{{ expense.payment_info }}</td>
+                                <td>{{ expense.due_date }}</td>
+                                <td>{{ expense.amount }}</td>
+                                <td>{{ expense.category.name }}</td>
+                                {% if expense.installments %}
+                                    <td class="installments">{{ expense.current_installment }}/{{ expense.installments }}</td>
+                                {% else %}
+                                    <td class="installments">-</td>
+                                {% endif %}
+                                <td>{{ expense.settle_account.name }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="7">No settled transactions.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
         </div>
         <!-- INCOME TAB -->
         {% if came_from_income %}
@@ -197,7 +199,7 @@
         {% else %}
         <div id="income" style="display:none;">
         {% endif %}
-            <img src="{% static 'pennywise/cash.svg' %}" alt="Plus icon" width="50" height="50" style="float:left;">
+            <img src="{% static 'pennywise/icons/cash.svg' %}" alt="Plus icon" width="50" height="50" style="float:left;">
             <h1>Income</h1>
             <hr>
             <h4>Today</h4>
@@ -230,7 +232,7 @@
                             {% else %}
                                 <td class="installments">-</td>
                             {% endif %}
-                            <td class="settle-button {{ income.id }}" onclick="showSettle({{ income.id }})">˅</td>
+                            <td class="slide-down-button {{ income.id }}" onclick="showMore({{ income.id }})">˅</td>
                         </tr>
                         <tr id="{{ income.id }}" style="display:none">
                             <td class="settle-description">Settle description:</td>
@@ -262,7 +264,7 @@
                             </form>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="7">No data.</td></tr>
+                        <tr><td colspan="7">No expired receivables.</td></tr>
                     {% endfor %}
                 </tbody>
             </table><br>
@@ -292,7 +294,7 @@
                             {% else %}
                                 <td class="installments">-</td>
                             {% endif %}
-                            <td class="settle-button {{ income.id }}" onclick="showSettle({{ income.id }})">˅</td>
+                            <td class="slide-down-button {{ income.id }}" onclick="showMore({{ income.id }})">˅</td>
                         </tr>
                         <tr id="{{ income.id }}" style="display:none">
                             <td class="settle-description">Settle description:</td>
@@ -324,43 +326,45 @@
                             </form>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="7">No data.</td></tr>
+                        <tr><td colspan="7">No upcoming income.</td></tr>
                     {% endfor %}
                 </tbody>
             </table><br>
-            <h4>Settled</h4>
-            <table class="table table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Description</th>
-                        <th>Payment Info</th>
-                        <th>Due date</th>
-                        <th>Amount</th>
-                        <th>Category</th>
-                        <th>Installments</th>
-                        <th>Settled</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for income in settled_incomes %}
-                        <tr class="settled">
-                            <td>{{ income.description }}</td>
-                            <td>{{ income.payment_info }}</td>
-                            <td>{{ income.due_date }}</td>
-                            <td>{{ income.amount }}</td>
-                            <td>{{ income.category.name }}</td>
-                            {% if income.installments %}
-                                <td class="installments">{{ income.current_installment }}/{{ income.installments }}</td>
-                            {% else %}
-                                <td class="installments">-</td>
-                            {% endif %}
-                            <td class="settle-button">✓</td>
+            {% if settled_incomes %}
+                <h4>Settled</h4>
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Description</th>
+                            <th>Payment Info</th>
+                            <th>Due date</th>
+                            <th>Amount</th>
+                            <th>Category</th>
+                            <th>Installments</th>
+                            <th>Account</th>
                         </tr>
-                    {% empty %}
-                        <tr><td colspan="7">No data.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table><br>
+                    </thead>
+                    <tbody>
+                        {% for income in settled_incomes %}
+                            <tr class="settled">
+                                <td>{{ income.description }}</td>
+                                <td>{{ income.payment_info }}</td>
+                                <td>{{ income.due_date }}</td>
+                                <td>{{ income.amount }}</td>
+                                <td>{{ income.category.name }}</td>
+                                {% if income.installments %}
+                                    <td class="installments">{{ income.current_installment }}/{{ income.installments }}</td>
+                                {% else %}
+                                    <td class="installments">-</td>
+                                {% endif %}
+                                <td>{{ income.settle_account.name }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="7">No settled transactions.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table><br>
+            {% endif %}
         </div>
     </div>
 

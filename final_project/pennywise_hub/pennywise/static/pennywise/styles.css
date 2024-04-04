@@ -21,10 +21,6 @@
     display: none;
 }
 
-button {
-    float:left;
-}
-
 .btn-primary {
     float: right;
 }
@@ -44,7 +40,7 @@ button {
 }
 
 .settled {
-    background-color: #0F9D58;
+    background-color: #AFE1AF;
 }
 
 .installments {
@@ -55,12 +51,16 @@ button {
     width: 10%;
 }
 
-.settle-button {
+.slide-down-button {
     color: black;
     text-align: center;
 }
 
-.settle-button:hover {
+.slide-down-button:hover {
+    cursor: pointer;
+}
+
+.edit-button:hover {
     cursor: pointer;
 }
 

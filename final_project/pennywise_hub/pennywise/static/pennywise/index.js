@@ -1,25 +1,3 @@
-function showSettle(id) {
-    el_button = document.getElementsByClassName(id)[0];
-    el = document.getElementById(id);
-    el.style.animationDuration = "0.2s";
-    el.style.animationPlaystate = "paused";
-    el.style.animationFillMode = "forwards";
-    if (el_button.innerHTML == "˅") {
-        el_button.innerHTML = "˄";
-        el.style.animationName = "slide-down";
-        el.style.animationPlaystate = "running";
-        el.style.display = "table-row";  
-    }
-    else {
-        el_button.innerHTML = "˅";
-        el.style.animationName = "slide-up";
-        el.style.animationPlaystate = "running";
-        setTimeout(() => {
-            el.style.display = "none";
-          }, 200)
-    }
-}
-
 // Show expense transactions table
 function show_expense(el) {
     document.getElementById("expense").style.display = "block";

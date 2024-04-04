@@ -19,10 +19,10 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     {% if user.is_authenticated %}
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                            <li class="nav-item"><a class="nav-link active" href="#">Accounts</a></li>
+                            <li class="nav-item"><a class="nav-link active" href="{% url 'accounts' %}">Accounts</a></li>
                             <li class="nav-item"><a class="nav-link active" href="{% url 'archive' %}">Archive</a></li>
                             <li class="nav-item"><a class="nav-link active" href="#">Categories</a></li>
-                            <li class="nav-item"><a class="nav-link active" href="{% url 'new_transaction' %}"><img src="{% static 'pennywise/plus.svg' %}" alt="Plus icon" width="30" height="30"></a></li>
+                            <li class="nav-item"><a class="nav-link active" href="{% url 'new_transaction' %}"><img src="{% static 'pennywise/icons/plus.svg' %}" alt="Plus icon" width="30" height="30"></a></li>
                         </ul>
                         <ul class="navbar-nav ms-auto mt-2">
                             <li class="nav-item">

@@ -32,9 +32,35 @@ function checkInstallments(el) {
 }
 
 function showMore(id) {
-    if (document.getElementById(id).style.display === "none") {
-        document.getElementById(id).style.display = "table-row";
-    } else {
-        document.getElementById(id).style.display = "none";
+    el_button = document.getElementsByClassName(id)[0];
+    el = document.getElementById(id);
+    el.style.animationDuration = "0.2s";
+    el.style.animationPlaystate = "paused";
+    el.style.animationFillMode = "forwards";
+    if (el_button.innerHTML == "˅") {
+        el_button.innerHTML = "˄";
+        el.style.animationName = "slide-down";
+        el.style.animationPlaystate = "running";
+        el.style.display = "table-row";  
     }
+    else {
+        el_button.innerHTML = "˅";
+        el.style.animationName = "slide-up";
+        el.style.animationPlaystate = "running";
+        setTimeout(() => {
+            el.style.display = "none";
+          }, 200)
+    }
+}
+
+function submitForm(img) {
+    var form = img.parentNode;
+    if (form.tagName === 'FORM') {
+        form.submit();
+    }
+}
+
+function showDeleteConfirmation() {
+    document.getElementById("delete").style.display = "none";
+    document.getElementById("confirmation").style.display = "initial";
 }

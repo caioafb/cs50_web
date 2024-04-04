@@ -4,6 +4,12 @@
 
     <h1>Archive</h1>
 
+    {% if message %}
+            <div id="message" class="alert alert-success w-25 mx-auto">{{ message }}</div>
+    {% elif error %}
+        <div id="message" class="alert alert-danger w-25 mx-auto">{{ error }}</div>
+    {% endif %}
+
     <div class="container">
         <form class="row" action="{% url 'archive' %}" method="post">
             {% csrf_token %}
@@ -86,37 +92,36 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for data in page.object_list %}
+                            {% for transaction in page.object_list %}
                                 <tr>
-                                    <td>{{ data.description }}</td>
-                                    <td>{{ data.payment_info }}</td>
-                                    <td>{{ data.due_date }}</td>
-                                    {% if data.settle_date %}
-                                        <td class="settled">{{ data.settle_date }}</td>
+                                    <td>{{ transaction.description }}</td>
+                                    <td>{{ transaction.payment_info }}</td>
+                                    <td>{{ transaction.due_date }}</td>
+                                    {% if transaction.settle_date %}
+                                        <td class="settled">{{ transaction.settle_date }}</td>
                                     {% else %}
                                         <td>-</td>
                                     {% endif %}
-                                    <td>{{ data.amount }}</td>
-                                    <td>{{ data.name }}</td>
-                                    {% if data.installments != None %}
-                                        <td class="installments">{{ data.current_installment }}/{{ data.installments }}</td>
+                                    <td>{{ transaction.amount }}</td>
+                                    <td>{{ transaction.category.name }}</td>
+                                    {% if transaction.installments != None %}
+                                        <td class="installments">{{ transaction.current_installment }}/{{ transaction.installments }}</td>
                                     {% else %}
                                         <td class="installments">-</td>
                                     {% endif %}
-                                    <td><input class="form-check-input" type="checkbox" onchange="showMore({{ data.id }})"></td>
+                                    <td class="slide-down-button {{ transaction.id }}" onclick="showMore({{ transaction.id }})">˅</td>
                                 </tr>
-                                <tr id="{{ data.id }}" style="display:none">
-                                    <td style="text-align:right">Settle description:</td>
-                                    {% if data.settle_description %}
-                                        <td colspan="5" style="text-align:left">{{ data.settle_description }}</td>
+                                <tr id="{{ transaction.id }}" style="display:none">
+                                    <td style="text-align:right"><strong>Settle description:</strong></td>
+                                    {% if transaction.settle_description %}
+                                        <td colspan="6" style="text-align:left">{{ transaction.settle_description }}</td>
                                     {% else %}
-                                        <td colspan="5">-</td>
+                                        <td colspan="6">-</td>
                                     {% endif %}
-                                    <td></td>
                                     <td>
-                                        <form action="/edit" method="post">
-                                            <input type="hidden" name="data_id" value="{{ data.id }}">
-                                            <button class="btn" name="edit" value="to_edit_page" type="submit">✏️</button>
+                                        <form action="/edit" method="get">
+                                            <input type="hidden" name="transaction_id" value="{{ transaction.id }}">
+                                            <img class="edit-button" src="static/pennywise/icons/edit.svg" alt="Edit icon" onclick="submitForm(this)">
                                         </form>
                                     </td>
                                 </tr>

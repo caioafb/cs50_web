@@ -4,12 +4,19 @@
 
     <div class="forms">
         <h2>Accounts</h2>
+        <br>
+        {% if message %}
+            <div id="message" class="alert alert-success">{{ message }}</div>
+        {% elif error %}
+            <div id="message" class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
         {% if accounts %}
-            <form action="{% url 'accounts' %}" method="post">
+            <form action="{% url 'account_statement' %}" method="post">
                 {% csrf_token %}
                 <div class="form-floating mb-3">
                     <select class="form-control" name="account" id="account" onchange="this.form.submit()" required>
-                        <option value="none" selected disabled>Select account</option>
+                        <option value="none" selected disabled>Select an account</option>
                         {% for account in accounts %}
                             <option value="{{ account.id }}">{{ account.name }}</option>
                         {% endfor %}
@@ -18,8 +25,8 @@
                 </div>
 
                 <div class="form-floating mb-3">
-                    <input class="form-control" autocomplete="off" id="due_date" name="due_date" type="month" value="{{ today|date:"Y-m" }}" required>
-                    <label for="due_date">Due date</label>
+                    <input class="form-control" autocomplete="off" id="date" name="date" type="month" value="{{ today|date:"Y-m" }}" required>
+                    <label for="date">Date</label>
                 </div>
             </form>
         {% else %}

@@ -1,18 +1,17 @@
-// Show expense transactions table
-function show_expense(el) {
-    document.getElementById("expense").style.display = "block";
-    document.getElementById("income").style.display = "none";
-    document.getElementById("income-button").removeAttribute("disabled");
-    el.setAttribute("disabled", "")
-
-}
-
-// Show income transactions table
-function show_income(el) {
-    document.getElementById("income").style.display = "block";
-    document.getElementById("expense").style.display = "none";
-    document.getElementById("expense-button").removeAttribute("disabled");
-    el.setAttribute("disabled", "")
+// Swap between income and expanse transactions table
+function swap_tab(el) {
+    if (el.innerHTML == "Income") {
+        document.getElementById("income").style.display = "block";
+        document.getElementById("expense").style.display = "none";
+        document.getElementById("expense-button").removeAttribute("disabled");
+        el.setAttribute("disabled", "")
+    }
+    else {
+        document.getElementById("expense").style.display = "block";
+        document.getElementById("income").style.display = "none";
+        document.getElementById("income-button").removeAttribute("disabled");
+        el.setAttribute("disabled", "")
+    }
 }
 
 // Set settle date to today by default 

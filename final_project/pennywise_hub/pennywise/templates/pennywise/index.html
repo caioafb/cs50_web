@@ -6,11 +6,11 @@
     <div class="index-body">
         <div class="btn-menu mb-1">
             {% if came_from_income %}
-                <button class="btn btn-outline-dark me-2" id="expense-button" onclick="show_expense(this)">Expense</button>
-                <button class="btn btn-outline-dark" id="income-button" onclick="show_income(this)" disabled>Income</button>
+                <button class="btn btn-outline-dark me-2" id="expense-button" onclick="swap_tab(this)">Expense</button>
+                <button class="btn btn-outline-dark" id="income-button" onclick="swap_tab(this)" disabled>Income</button>
             {% else %}
-                <button class="btn btn-outline-dark me-2" id="expense-button" onclick="show_expense(this)" disabled>Expense</button>
-                <button class="btn btn-outline-dark" id="income-button" onclick="show_income(this)">Income</button>
+                <button class="btn btn-outline-dark me-2" id="expense-button" onclick="swap_tab(this)" disabled>Expense</button>
+                <button class="btn btn-outline-dark" id="income-button" onclick="swap_tab(this)">Income</button>
             {% endif %}
         </div>
         
@@ -69,7 +69,7 @@
                                     <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description"></textarea>
                                 </td>
                                 <td class="amount-box">
-                                    <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ expense.amount }}" type="number" min="0" step="0.10">
+                                    <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ expense.amount }}" type="number" min="0" step="0.01">
                                 </td>
                                 <td>
                                     <input class="form-control today" autocomplete="off" autofocus id="settle_date" name="settle_date" type="date">
@@ -131,7 +131,7 @@
                                     <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description"></textarea>
                                 </td>
                                 <td class="amount-box">
-                                    <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ expense.amount }}" type="number" min="0" step="0.10">
+                                    <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ expense.amount }}" type="number" min="0" step="0.01">
                                 </td>
                                 <td>
                                     <input class="form-control today" autocomplete="off" autofocus id="settle_date" name="settle_date" type="date">
@@ -242,7 +242,7 @@
                                     <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description"></textarea>
                                 </td>
                                 <td class="amount-box">
-                                    <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ income.amount }}" type="number" min="0" step="0.10">
+                                    <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ income.amount }}" type="number" min="0" step="0.01">
                                 </td>
                                 <td>
                                     <input class="form-control today" autocomplete="off" autofocus id="settle_date" name="settle_date" type="date">
@@ -304,7 +304,7 @@
                                     <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description"></textarea>
                                 </td>
                                 <td class="amount-box">
-                                    <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ income.amount }}" type="number" min="0" step="0.10">
+                                    <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ income.amount }}" type="number" min="0" step="0.01">
                                 </td>
                                 <td>
                                     <input class="form-control today" autocomplete="off" autofocus id="settle_date" name="settle_date" type="date">

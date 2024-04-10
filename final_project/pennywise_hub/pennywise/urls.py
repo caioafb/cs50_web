@@ -11,5 +11,7 @@ urlpatterns = [
     path("settings", views.settings, name="settings"),
     path("archive", views.archive, name="archive"),
     path("edit", views.edit, name="edit"),
-    path("accounts", views.accounts, name="accounts")
+    path("accounts", views.accounts, name="accounts"),
+    path("account_statement", views.accounts, name="account_statement"),
+    path("overview", views.overview, name="overview")
 ]

@@ -64,3 +64,19 @@ function showDeleteConfirmation() {
     document.getElementById("delete").style.display = "none";
     document.getElementById("confirmation").style.display = "initial";
 }
+
+// Swap between statement and projection tables
+function swap_overview_tab(el) {
+    if (el.innerHTML == "Overview") {
+        document.getElementById("overview").style.display = "block";
+        document.getElementById("projection").style.display = "none";
+        document.getElementById("projection-button").removeAttribute("disabled");
+        el.setAttribute("disabled", "")
+    }
+    else {
+        document.getElementById("projection").style.display = "block";
+        document.getElementById("overview").style.display = "none";
+        document.getElementById("overview-button").removeAttribute("disabled");
+        el.setAttribute("disabled", "")
+    }
+}

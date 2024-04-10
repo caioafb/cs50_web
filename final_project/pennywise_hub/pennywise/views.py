@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.core.paginator import Paginator
 
-from .models import User, Company, CompanyUser, Category, Account, Transaction
+from .models import User, Company, CompanyUser, Category, Account, Transaction, MonthlyAccountBalance
 
 def register(request):
     if request.method == "POST":
@@ -116,14 +116,24 @@ def index(request):
             transaction.settle_account = account
             transaction.save()
 
+            date = datetime.strptime(settle_date, "%Y-%m-%d").replace(day=1).date()
+            # Try to get an instance of the account's monthly balance, creates one if it doesn't exist
+            try:
+                monthly_balance = MonthlyAccountBalance.objects.get(account=account, month_year=date)
+            except:
+                monthly_balance = MonthlyAccountBalance(account=account, month_year=date)
+
             # Update account balance
             if transaction.category.type == "E":
                 account.balance = float(account.balance) - float(amount)
+                monthly_balance.balance = float(monthly_balance.balance) - float(amount)
             else:
                 account.balance = float(account.balance) + float(amount)
+                monthly_balance.balance = float(monthly_balance.balance) + float(amount)
                 came_from_income = True
 
             account.save()
+            monthly_balance.save()
             message = "Transaction settled successfully."
 
     accounts = Account.objects.filter(company=request.session["company_id"])
@@ -173,7 +183,6 @@ def new_transaction(request):
         if has_installments:
             new_date = due_date
             for n in range(int(installments)):
-                print(f'{int(n)+1} de {installments}')
                 transaction = Transaction(company=company, user=request.user, due_date=new_date, category=category, amount=amount, payment_info=payment_info, description=description, replicate=replicate, installments=installments, current_installment=int(n)+1)
                 transaction.save()
                 new_date = due_date + relativedelta(months = int(n)+1)
@@ -257,6 +266,7 @@ def edit(request):
             due_date = datetime.strptime(request.POST["due_date"], "%Y-%m-%d").date()
             try:
                 settle_date = datetime.strptime(request.POST["settle_date"], "%Y-%m-%d").date()
+                old_settle_month_year = transaction.settle_date.replace(day=1)
             except ValueError:
                 settle_date = None
 
@@ -266,7 +276,6 @@ def edit(request):
             description = request.POST["description"]
             settle_description = request.POST["settle_description"]
             transaction.due_date = due_date
-            print(settle_date)
             transaction.settle_date = settle_date
             transaction.category = category
             transaction.amount = amount
@@ -276,8 +285,8 @@ def edit(request):
 
             # Check if transaction has been settled and adjust account balance
             if (transaction.settle_date):
+                old_account = Account.objects.get(id = transaction.settle_account.id)
                 if (transaction.settle_account != account):
-                    old_account = Account.objects.get(id = transaction.settle_account.id)
                     if (transaction.category.type == "E"):
                         old_account.balance = float(old_account.balance) + old_amount
                         account.balance = float(account.balance) - transaction.amount
@@ -287,25 +296,61 @@ def edit(request):
                     old_account.save()
                     account.save()
                     transaction.settle_account = account
-                else:
-                    if (old_amount != amount):
-                        if (transaction.category.type == "E"):
-                            account.balance = float(account.balance) + old_amount
-                            account.balance = float(account.balance) - amount
-                        else:
-                            account.balance = float(account.balance) - old_amount
-                            account.balance = float(account.balance) + amount
-                        account.save()
-            transaction.save()
-            message = "Transaction edited successfully."
 
+                elif (old_amount != amount):
+                    if (transaction.category.type == "E"):
+                        account.balance = float(account.balance) + old_amount
+                        account.balance = float(account.balance) - amount
+                    else:
+                        account.balance = float(account.balance) - old_amount
+                        account.balance = float(account.balance) + amount
+                    account.save()
+                '''
+                Ver isso aqui
+                Mudando a conta, tem que mudar o monthlyaccountbalance de qualquer jeito, se não mudar a conta, tem que ver se mudou o mêsano
+                VER SE DEU CERTO ISSO AÊ
+                '''
+                old_account_monthly_balance = MonthlyAccountBalance.objects.get(account=old_account, month_year=old_settle_month_year)
+                try:
+                    account_monthly_balance = MonthlyAccountBalance.objects.get(account=account, month_year=settle_date.replace(day=1))
+                except:
+                    account_monthly_balance = MonthlyAccountBalance(account=account, month_year=settle_date.replace(day=1))
+
+                # This conditional checks if the account or month is different
+                if (old_account_monthly_balance != account_monthly_balance):
+                    if (transaction.category.type == "E"):
+                        old_account_monthly_balance.balance = float(old_account_monthly_balance.balance) + old_amount
+                        account_monthly_balance.balance = float(account_monthly_balance.balance) - amount
+                    else:
+                        old_account_monthly_balance.balance = float(old_account_monthly_balance.balance) - old_amount
+                        account_monthly_balance.balance = float(account_monthly_balance.balance) + amount
+                    
+                    old_account_monthly_balance.save()
+                    account_monthly_balance.save()
+
+                elif (old_amount != amount):
+                    if (transaction.category.type == "E"):
+                        account_monthly_balance.balance = float(account_monthly_balance.balance) + old_amount
+                        account_monthly_balance.balance = float(account_monthly_balance.balance) - amount
+                    else:
+                        account_monthly_balance.balance = float(account_monthly_balance.balance) - old_amount
+                        account_monthly_balance.balance = float(account_monthly_balance.balance) + amount
+                    account_monthly_balance.save()
+
+                transaction.save()
+                message = "Transaction edited successfully."
+       
         elif request.POST["edit"] == "delete_transaction":
             if (transaction.settle_date):
+                account_monthly_balance = MonthlyAccountBalance.objects.get(account=account, month_year=transaction.settle_date.replace(day=1))
                 if (transaction.category.type == "E"):
                     account.balance = float(account.balance) + old_amount
+                    account_monthly_balance.balance = float(account_monthly_balance.balance) + old_amount
                 else:
                     account.balance = float(account.balance) - old_amount
+                    account_monthly_balance.balance = float(account_monthly_balance.balance) - old_amount
                 account.save()
+                account_monthly_balance.save()
 
             transaction.delete()
             message = "Transaction deleted successfully."
@@ -330,19 +375,48 @@ def edit(request):
 
 @login_required
 def accounts(request):
+    today = datetime.today().date()
+    error = None
     
     if request.method == "POST":
-        #TODO
-        pass 
+        account = Account.objects.get(id=request.POST["account"])
+        date = datetime.strptime(request.POST["date"], "%Y-%m").date().replace(day=1)
+        transactions = Transaction.objects.filter(settle_account=account, settle_date__month=date.month, settle_date__year=date.year)
+        if not transactions:
+            error = "No activity for the selected month"
+        else:
+            month_difference = relativedelta(today, date)
+            month_difference = month_difference.years * 12 + month_difference.months
+            month_balance = float(MonthlyAccountBalance.objects.get(account=account, month_year=date).balance)
+            carry_over = 0
+            for i in range(month_difference):
+                try:
+                    carry_over = carry_over + float(MonthlyAccountBalance.objects.get(account=account, month_year=date+relativedelta(months=i+1)).balance)
+                except:
+                    pass
+            carry_over = float(account.balance) - (carry_over + month_balance)
+            balance = carry_over + month_balance
+
+        
+            return render(request, "pennywise/account_statement.html", {
+                "account": account,
+                "transactions": transactions,
+                "carry_over": carry_over,
+                "month_balance": month_balance,
+                "balance": balance,
+                "date": date.strftime("%B %Y")
+            })
 
     accounts = Account.objects.filter(company=request.session["company_id"])
-    today = datetime.today().date()
-
     return render(request, "pennywise/accounts.html", {
         "accounts": accounts,
-        "today": today
+        "today": today,
+        "error": error
     })
 
+@login_required
+def overview(request):
+    return render(request, "pennywise/overview.html")
 
 @login_required
 def settings(request):
@@ -367,8 +441,10 @@ def settings(request):
             new_account = request.POST["new_account"].title()
             starting_balance = float(request.POST["starting_balance"])
             account = Account(name=new_account, balance=starting_balance, company=company)
+            account_monthly_balance = MonthlyAccountBalance(account=account, balance=starting_balance, month_year=datetime.today().date().replace(day=1))
             try:
                 account.save()
+                account_monthly_balance.save()
                 message = "New account saved."
             except IntegrityError:
                 error = "Account name unavailable."

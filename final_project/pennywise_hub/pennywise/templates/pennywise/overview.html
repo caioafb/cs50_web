@@ -1,0 +1,20 @@
+{% extends "pennywise/layout.html" %}
+
+{% block body %}
+
+<div class="container">
+    <div class="btn-menu mb-1">
+        <button class="btn btn-outline-dark me-2" id="overview-button" onclick="swap_overview_tab(this)" disabled>Overview</button>
+        <button class="btn btn-outline-dark" id="projection-button" onclick="swap_overview_tab(this)">Projection</button>
+    </div>
+
+    <div id="overview">
+        <h2>Overview</h2>
+    </div>
+
+    <div id="projection" style="display:none;">
+        <h2>Projection</h2>
+    </div>
+</div>
+
+{% endblock %}

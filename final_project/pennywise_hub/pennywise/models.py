@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 class User(AbstractUser):
     pass
@@ -57,6 +58,16 @@ class Account(models.Model):
 
     def __str__(self):
         return f"{self.company} - {self.name}"
+    
+    
+class MonthlyAccountBalance(models.Model):
+    balance = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    month_year = models.DateField() # Saving the first day of the month, example: April 2024 will be saved as 2024-04-01)
+    account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name="monthly_balances")
+
+    def __str__(self):
+        return f"{self.account} - {self.month_year.month}/{self.month_year.year} - {self.balance}"
+
 
 class Transaction(models.Model):
     REPLICATE_CHOICES = {
@@ -83,6 +94,7 @@ class Transaction(models.Model):
     settle_date = models.DateField(null=True, blank=True)
     settle_description = models.CharField(null=True, blank=True, max_length=255)
     settle_receipt = models.ImageField(null=True, blank=True, upload_to="pennywise/files/receipts")
+    payment_slip = models.ImageField(null=True, blank=True, upload_to="pennywise/files/payment_slips")
     
     def has_expired(self):
         today = datetime.today().date()

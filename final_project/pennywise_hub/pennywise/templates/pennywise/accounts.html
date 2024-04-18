@@ -29,6 +29,31 @@
                     <label for="date">Date</label>
                 </div>
             </form>
+            <br><br>
+            <h4>Accounts summary</h4>
+            <table class="table table-hover table-light table-striped">
+                {% for account in accounts %}
+                    <tr>
+                        <td><h6>{{ account.name }}</h6></td>
+                        {% if account.balance < 0 %}
+                            <td><h6>$ <span class="expired-expense">{{ account.balance|floatformat:2 }}</span></h6></td>
+                        {% else %}
+                            <td><h6>$ {{ account.balance|floatformat:2 }}</h6></td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <p>Create an account in the settings menu.</p>
+                {% endfor %}
+                {% if total_balance %}
+                    <tr>
+                        {% if total_balance < 0 %}
+                            <td colspan="2" style="text-align:right"><h6>Total: $ <span class="expired-expense">{{ total_balance|floatformat:2 }}</span></h6></td>
+                        {% else %}
+                            <td colspan="3" style="text-align:right"><h6>Total: $ {{ total_balance|floatformat:2 }}</h6></td>
+                        {% endif %}
+                    </tr>
+                {% endif %}
+            </table>
         {% else %}
             <p>Create an account in the settings menu.</p>
         {% endif %}

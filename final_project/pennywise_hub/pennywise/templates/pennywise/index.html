@@ -35,11 +35,10 @@
                     <tr>
                         <th>Description</th>
                         <th>Payment Info</th>
-                        <th>Due date</th>
                         <th>Amount</th>
+                        <th>Due date</th>
                         <th>Category</th>
-                        <th>Installments</th>
-                        <th>Settle</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -49,24 +48,29 @@
                         {% else %}
                         <tr>
                         {% endif %}
-                            <td>{{ expense.description }}</td>
+                            <td>
+                                <form action="{% url 'edit' %}" method="get">
+                                    <input type="hidden" name="transaction_id" value="{{ expense.id }}">
+                                    <span class="edit-button" onclick="submitForm(this)">
+                                        {% if expense.installments %}
+                                            {{ expense.description }} - {{ expense.current_installment }} of {{ expense.installments }}
+                                        {% else %}
+                                            {{ expense.description }}
+                                        {% endif %}
+                                    </span>
+                                </form>
+                            </td>
                             <td>{{ expense.payment_info }}</td>
-                            <td>{{ expense.due_date }}</td>
                             <td>{{ expense.amount }}</td>
+                            <td>{{ expense.due_date }}</td>
                             <td>{{ expense.category.name }}</td>
-                            {% if expense.installments %}
-                                <td class="installments">{{ expense.current_installment }}/{{ expense.installments }}</td>
-                            {% else %}
-                                <td class="installments">-</td>
-                            {% endif %}
                             <td class="slide-down-button {{ expense.id }}" onclick="showMore({{ expense.id }})">˅</td>
                         </tr>
                         <tr id="{{ expense.id }}" style="display:none">
-                            <td class="settle-description">Settle description:</td>
                             <form action="{% url 'index' %}" method="post">
                                 {% csrf_token %}
                                 <td colspan="2">
-                                    <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description"></textarea>
+                                    <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description" placeholder="Settle description"></textarea>
                                 </td>
                                 <td class="amount-box">
                                     <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ expense.amount }}" type="number" min="0" step="0.01">
@@ -91,7 +95,7 @@
                             </form>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="7">No expired payables.</td></tr>
+                        <tr><td colspan="7">No expired expense.</td></tr>
                     {% endfor %}
                 </tbody>
             </table><br>
@@ -101,34 +105,38 @@
                     <tr>
                         <th>Description</th>
                         <th>Payment Info</th>
-                        <th>Due date</th>
                         <th>Amount</th>
+                        <th>Due date</th>
                         <th>Category</th>
-                        <th>Installments</th>
-                        <th>Settle</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for expense in upcoming_expenses %}
                         <tr>
-                            <td>{{ expense.description }}</td>
+                            <td>
+                                <form action="{% url 'edit' %}" method="get">
+                                    <input type="hidden" name="transaction_id" value="{{ expense.id }}">
+                                    <span class="edit-button" onclick="submitForm(this)">
+                                        {% if expense.installments %}
+                                            {{ expense.description }} - {{ expense.current_installment }} of {{ expense.installments }}
+                                        {% else %}
+                                            {{ expense.description }}
+                                        {% endif %}
+                                    </span>
+                                </form>
+                            </td>
                             <td>{{ expense.payment_info }}</td>
-                            <td>{{ expense.due_date }}</td>
                             <td>{{ expense.amount }}</td>
+                            <td>{{ expense.due_date }}</td>
                             <td>{{ expense.category.name }}</td>
-                            {% if expense.installments %}
-                                <td class="installments">{{ expense.current_installment }}/{{ expense.installments }}</td>
-                            {% else %}
-                                <td class="installments">-</td>
-                            {% endif %}
                             <td class="slide-down-button {{ expense.id }}" onclick="showMore({{ expense.id }})">˅</td>
                         </tr>
                         <tr id="{{ expense.id }}" style="display:none">
-                            <td class="settle-description">Settle description:</td>
                             <form action="{% url 'index' %}" method="post">
                                 {% csrf_token %}
                                 <td colspan="2">
-                                    <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description"></textarea>
+                                    <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description" placeholder="Settle description"></textarea>
                                 </td>
                                 <td class="amount-box">
                                     <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ expense.amount }}" type="number" min="0" step="0.01">
@@ -164,26 +172,31 @@
                         <tr>
                             <th>Description</th>
                             <th>Payment Info</th>
-                            <th>Due date</th>
                             <th>Amount</th>
+                            <th>Due date</th>
                             <th>Category</th>
-                            <th>Installments</th>
                             <th>Account</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for expense in settled_expenses %}
                             <tr class="settled">
-                                <td>{{ expense.description }}</td>
+                                <td>
+                                    <form action="{% url 'edit' %}" method="get">
+                                        <input type="hidden" name="transaction_id" value="{{ expense.id }}">
+                                        <span class="edit-button" onclick="submitForm(this)">
+                                            {% if expense.installments %}
+                                                {{ expense.description }} - {{ expense.current_installment }} of {{ expense.installments }}
+                                            {% else %}
+                                                {{ expense.description }}
+                                            {% endif %}
+                                        </span>
+                                    </form>
+                                </td>
                                 <td>{{ expense.payment_info }}</td>
-                                <td>{{ expense.due_date }}</td>
                                 <td>{{ expense.amount }}</td>
+                                <td>{{ expense.due_date }}</td>
                                 <td>{{ expense.category.name }}</td>
-                                {% if expense.installments %}
-                                    <td class="installments">{{ expense.current_installment }}/{{ expense.installments }}</td>
-                                {% else %}
-                                    <td class="installments">-</td>
-                                {% endif %}
                                 <td>{{ expense.settle_account.name }}</td>
                             </tr>
                         {% empty %}
@@ -208,11 +221,10 @@
                     <tr>
                         <th>Description</th>
                         <th>Payment Info</th>
-                        <th>Due date</th>
                         <th>Amount</th>
+                        <th>Due date</th>
                         <th>Category</th>
-                        <th>Installments</th>
-                        <th>Settle</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -222,16 +234,22 @@
                         {% else %}
                         <tr>
                         {% endif %}
-                            <td>{{ income.description }}</td>
+                            <td>
+                                <form action="{% url 'edit' %}" method="get">
+                                    <input type="hidden" name="transaction_id" value="{{ income.id }}">
+                                    <span class="edit-button" onclick="submitForm(this)">
+                                        {% if income.installments %}
+                                            {{ income.description }} - {{ income.current_installment }} of {{ income.installments }}
+                                        {% else %}
+                                            {{ income.description }}
+                                        {% endif %}
+                                    </span>
+                                </form>
+                            </td>
                             <td>{{ income.payment_info }}</td>
-                            <td>{{ income.due_date }}</td>
                             <td>{{ income.amount }}</td>
+                            <td>{{ income.due_date }}</td>
                             <td>{{ income.category.name }}</td>
-                            {% if income.installments %}
-                                <td class="installments">{{ income.current_installment }}/{{ income.installments }}</td>
-                            {% else %}
-                                <td class="installments">-</td>
-                            {% endif %}
                             <td class="slide-down-button {{ income.id }}" onclick="showMore({{ income.id }})">˅</td>
                         </tr>
                         <tr id="{{ income.id }}" style="display:none">
@@ -239,7 +257,7 @@
                             <form action="{% url 'index' %}" method="post">
                                 {% csrf_token %}
                                 <td colspan="2">
-                                    <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description"></textarea>
+                                    <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description" placeholder="Settle description"></textarea>
                                 </td>
                                 <td class="amount-box">
                                     <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ income.amount }}" type="number" min="0" step="0.01">
@@ -264,7 +282,7 @@
                             </form>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="7">No expired receivables.</td></tr>
+                        <tr><td colspan="7">No expired income.</td></tr>
                     {% endfor %}
                 </tbody>
             </table><br>
@@ -274,26 +292,31 @@
                     <tr>
                         <th>Description</th>
                         <th>Payment Info</th>
-                        <th>Due date</th>
                         <th>Amount</th>
+                        <th>Due date</th>
                         <th>Category</th>
-                        <th>Installments</th>
-                        <th>Settle</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for income in upcoming_incomes %}
                         <tr>
-                            <td>{{ income.description }}</td>
+                            <td>
+                                <form action="{% url 'edit' %}" method="get">
+                                    <input type="hidden" name="transaction_id" value="{{ income.id }}">
+                                    <span class="edit-button" onclick="submitForm(this)">
+                                        {% if income.installments %}
+                                            {{ income.description }} - {{ income.current_installment }} of {{ income.installments }}
+                                        {% else %}
+                                            {{ income.description }}
+                                        {% endif %}
+                                    </span>
+                                </form>
+                            </td>
                             <td>{{ income.payment_info }}</td>
                             <td>{{ income.due_date }}</td>
                             <td>{{ income.amount }}</td>
                             <td>{{ income.category.name }}</td>
-                            {% if income.installments %}
-                                <td class="installments">{{ income.current_installment }}/{{ income.installments }}</td>
-                            {% else %}
-                                <td class="installments">-</td>
-                            {% endif %}
                             <td class="slide-down-button {{ income.id }}" onclick="showMore({{ income.id }})">˅</td>
                         </tr>
                         <tr id="{{ income.id }}" style="display:none">
@@ -301,7 +324,7 @@
                             <form action="{% url 'index' %}" method="post">
                                 {% csrf_token %}
                                 <td colspan="2">
-                                    <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description"></textarea>
+                                    <textarea class="form-control" rows="1" autofocus autocomplete="off" id="settle_description" name="settle_description" placeholder="Settle description"></textarea>
                                 </td>
                                 <td class="amount-box">
                                     <input class="form-control" autocomplete="off" id="amount" name="amount" value="{{ income.amount }}" type="number" min="0" step="0.01">
@@ -337,26 +360,31 @@
                         <tr>
                             <th>Description</th>
                             <th>Payment Info</th>
-                            <th>Due date</th>
                             <th>Amount</th>
+                            <th>Due date</th>
                             <th>Category</th>
-                            <th>Installments</th>
                             <th>Account</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for income in settled_incomes %}
                             <tr class="settled">
-                                <td>{{ income.description }}</td>
+                                <td>
+                                    <form action="{% url 'edit' %}" method="get">
+                                        <input type="hidden" name="transaction_id" value="{{ income.id }}">
+                                        <span class="edit-button" onclick="submitForm(this)">
+                                            {% if income.installments %}
+                                                {{ income.description }} - {{ income.current_installment }} of {{ income.installments }}
+                                            {% else %}
+                                                {{ income.description }}
+                                            {% endif %}
+                                        </span>
+                                    </form>
+                                </td>
                                 <td>{{ income.payment_info }}</td>
-                                <td>{{ income.due_date }}</td>
                                 <td>{{ income.amount }}</td>
+                                <td>{{ income.due_date }}</td>
                                 <td>{{ income.category.name }}</td>
-                                {% if income.installments %}
-                                    <td class="installments">{{ income.current_installment }}/{{ income.installments }}</td>
-                                {% else %}
-                                    <td class="installments">-</td>
-                                {% endif %}
                                 <td>{{ income.settle_account.name }}</td>
                             </tr>
                         {% empty %}

@@ -51,19 +51,19 @@
             <div class="check-form">
                 <p class="form-check-inline">Replicate:</p>
                 <div class="form-check-inline">
-                    <input class="form-check-input" type="radio" id="once" name="replicate" value="O" checked="checked">
+                    <input class="form-check-input" type="radio" id="once" name="replicate" value="O" checked="checked" onchange="enableInstallment()">
                     <label class="form-check-label" for="replicate">Once</label>
                 </div>
                 <div class="form-check-inline">
-                    <input class="form-check-input" type="radio" id="monthly" name="replicate" value="M">
+                    <input class="form-check-input" type="radio" id="monthly" name="replicate" value="M" onchange="disableInstallment()">
                     <label class="form-check-label" for="replicate">Monthly</label>
                 </div>
                 <div class="form-check-inline">
-                    <input class="form-check-input" type="radio" id="quarterly" name="replicate" value="Q">
+                    <input class="form-check-input" type="radio" id="quarterly" name="replicate" value="Q" onchange="disableInstallment()">
                     <label class="form-check-label" for="replicate">Quarterly</label>
                 </div>
                 <div class="form-check-inline mb-3">
-                    <input class="form-check-input" type="radio" id="yearly" name="replicate" value="Y">
+                    <input class="form-check-input" type="radio" id="yearly" name="replicate" value="Y" onchange="enableInstallment()">
                     <label class="form-check-label" for="replicate">Yearly</label>
                 </div>
             </div>

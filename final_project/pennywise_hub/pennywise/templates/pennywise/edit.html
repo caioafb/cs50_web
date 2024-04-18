@@ -77,6 +77,13 @@
             <div class="check-form">
                 <p>Replicate: <strong>{{ transaction.get_replicate_display }}</strong></p>
             </div>
+            {% if transaction.installments and not transaction.settle_date %}
+                <div class="check-form">
+                    <label class="form-check-label" for="apply_to_next_installments">Apply to next installments&nbsp;</label>
+                    <input class="form-check-input" type="checkbox" value=True name="apply_to_next_installments" id="apply_to_next_installments">
+                    &nbsp;<abbr title="Amount, description and deletition only">⍰</abbr>
+                </div>
+            {% endif %}
             <input type="hidden" name="transaction_id" value="{{ transaction.id }}">
             <button class="btn btn-primary" name="edit" value="edit_transaction" type="submit">Save</button>
             <button class="btn btn-warning" id="confirmation" name="edit" value="delete_transaction" type="submit" style="display:none" ;>Delete?</button>

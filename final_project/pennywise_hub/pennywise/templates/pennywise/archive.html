@@ -83,43 +83,54 @@
                             <tr>
                                 <th scope="col">Description</th>
                                 <th scope="col">Payment Info</th>
+                                <th scope="col">Amount</th>
                                 <th scope="col">Due date</th>
                                 <th scope="col">Settle date</th>
-                                <th scope="col">Amount</th>
                                 <th scope="col">Category</th>
-                                <th scope="col">Installments</th>
-                                <th scope="col">+</th>
+                                <th scope="col"></th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for transaction in page.object_list %}
                                 <tr>
-                                    <td>{{ transaction.description }}</td>
+                                    <td>
+                                        <form action="{% url 'edit' %}" method="get">
+                                            <input type="hidden" name="transaction_id" value="{{ transaction.id }}">
+                                            <span class="edit-button" onclick="submitForm(this)">
+                                                {% if transaction.installments != None %}
+                                                    {{ transaction.description }} - {{ transaction.current_installment }} of {{ transaction.installments }}
+                                                {% else %}
+                                                    {{ transaction.description }}
+                                                {% endif %}
+                                            </span>
+                                        </form>
+                                    </td>
                                     <td>{{ transaction.payment_info }}</td>
+                                    <td>{{ transaction.amount }}</td>
                                     <td>{{ transaction.due_date }}</td>
                                     {% if transaction.settle_date %}
                                         <td class="settled">{{ transaction.settle_date }}</td>
                                     {% else %}
                                         <td>-</td>
                                     {% endif %}
-                                    <td>{{ transaction.amount }}</td>
                                     <td>{{ transaction.category.name }}</td>
-                                    {% if transaction.installments != None %}
-                                        <td class="installments">{{ transaction.current_installment }}/{{ transaction.installments }}</td>
-                                    {% else %}
-                                        <td class="installments">-</td>
-                                    {% endif %}
                                     <td class="slide-down-button {{ transaction.id }}" onclick="showMore({{ transaction.id }})">˅</td>
                                 </tr>
                                 <tr id="{{ transaction.id }}" style="display:none">
                                     <td style="text-align:right"><strong>Settle description:</strong></td>
                                     {% if transaction.settle_description %}
-                                        <td colspan="6" style="text-align:left">{{ transaction.settle_description }}</td>
+                                        <td colspan="3" style="text-align:left">{{ transaction.settle_description }}</td>
                                     {% else %}
-                                        <td colspan="6">-</td>
+                                        <td colspan="3">-</td>
+                                    {% endif %}
+                                    <td style="text-align:right"><strong>Settle account:</strong></td>
+                                    {% if transaction.settle_account %}
+                                        <td style="text-align:left">{{ transaction.settle_account.name }}</td>
+                                    {% else %}
+                                        <td>-</td>
                                     {% endif %}
                                     <td>
-                                        <form action="/edit" method="get">
+                                        <form action="{% url 'edit' %}" method="get">
                                             <input type="hidden" name="transaction_id" value="{{ transaction.id }}">
                                             <img class="edit-button" src="static/pennywise/icons/edit.svg" alt="Edit icon" onclick="submitForm(this)">
                                         </form>

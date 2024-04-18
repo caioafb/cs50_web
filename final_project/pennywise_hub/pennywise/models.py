@@ -100,6 +100,16 @@ class Transaction(models.Model):
         today = datetime.today().date()
         return self.due_date < today
     
+    def is_last_day_of_month(self):
+        date = self.due_date.replace(day=1) + relativedelta(months=1) - relativedelta(days=1)
+        return date == self.due_date
+    
     def __str__(self):
         return f"{self.company} - {self.id}"
     
+class Timer(models.Model):
+    db_date = models.DateField()
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="timer")
+
+    def __str__(self):
+        return f"{self.company} - {self.db_date}"

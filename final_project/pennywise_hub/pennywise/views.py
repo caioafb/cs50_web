@@ -7,8 +7,9 @@ from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.core.paginator import Paginator
+from django.db.models import Sum, Q
 
-from .models import User, Company, CompanyUser, Category, Account, Transaction, MonthlyAccountBalance
+from .models import User, Company, CompanyUser, Category, Account, Transaction, MonthlyAccountBalance, Timer
 
 def register(request):
     if request.method == "POST":
@@ -44,15 +45,21 @@ def register(request):
         company.save()
 
         # Create company-user relation
-        company_user = CompanyUser(user=user, company=company, access_level = 1)
+        company_user = CompanyUser(user=user, company=company, access_level=1)
         company_user.save()
+
+        # Create a database date stores for replicating purposes
+        timer = Timer(db_date=datetime.today().date(), company=company)
+        timer.save()
 
         login(request, user)
         companies = []
         for company in user.owned_companies.all():
             companies.append(company.name)
-        request.session['company'] = user.owned_companies.all()[0].name
-        request.session['companies'] = companies
+        request.session["company"] = user.owned_companies.all()[0].name
+        request.session["company_id"] = user.owned_companies.all()[0].id
+        request.session["companies"] = companies
+
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "pennywise/register.html")
@@ -90,6 +97,54 @@ def logout_view(request):
 
 @login_required
 def index(request):
+    timer = Timer.objects.get(company=request.session["company_id"])
+    today = datetime.today().date()
+
+    if (timer.db_date == today):
+        timer.db_date = today
+        timer.save()
+        expired_transactions = Transaction.objects.filter(~Q(replicate="O"), company=request.session["company_id"], due_date__lt=today, has_replicated=False).exclude(current_installment__gt=1)
+        for transaction in expired_transactions:
+            if transaction.replicate == "M":
+                months = 1
+            elif transaction.replicate == "Q":
+                months = 3
+            elif transaction. replicate == "Y":
+                months = 12
+            
+            cont = 0
+            while transaction.due_date < today:
+                due_date = transaction.due_date + relativedelta(months=months)
+                new_transaction = Transaction(company=transaction.company, user=transaction.user, due_date=due_date, category=transaction.category, amount=transaction.amount, payment_info=transaction.payment_info, description=transaction.description, replicate=transaction.replicate, installments=transaction.installments, current_installment=transaction.current_installment, parent_id=transaction.id)
+                new_transaction.save()
+                # Check if new transaction due_date should be last day of month, comparing with parent's transaction
+                if transaction.is_last_day_of_month() and not new_transaction.is_last_day_of_month():
+                    try:
+                        parent_transaction = Transaction.objects.get(id=transaction.parent_id)
+                    except:
+                        parent_transaction = None
+                    if parent_transaction:
+                        if parent_transaction.is_last_day_of_month():
+                            new_transaction.due_date = new_transaction.due_date.replace(day=1) + relativedelta(months=1) - relativedelta(days=1)
+                            new_transaction.save()
+                    else:
+                        new_transaction.due_date = new_transaction.due_date.replace(day=1) + relativedelta(months=1) - relativedelta(days=1)
+                        new_transaction.save()
+
+                if transaction.replicate == "Y" and transaction.installments:
+                    for i in range(2, int(transaction.installments)+1):
+                        new_transaction_installments = Transaction(company=transaction.company, user=transaction.user, due_date=new_transaction.due_date + relativedelta(months = i-1), category=transaction.category, amount=transaction.amount, payment_info=transaction.payment_info, description=transaction.description, replicate=transaction.replicate, installments=transaction.installments, current_installment=i)
+                        new_transaction_installments.save()
+                    
+                transaction.has_replicated = True
+                transaction.save()
+                transaction = new_transaction
+
+                cont = cont + 1
+                if cont == 20:
+                    break
+
+                    
     message = None
     error = None
     came_from_income = False # By default the page loads on the expenses tab, this variable changes to the income tab if a form was sent from income
@@ -161,9 +216,10 @@ def index(request):
 
 @login_required
 def new_transaction(request):
-    expense_categories = Category.objects.filter(type="E").order_by("name")
-    income_categories = Category.objects.filter(type="I").order_by("name")
+    expense_categories = Category.objects.filter(type="E", company=request.session["company_id"]).order_by("name")
+    income_categories = Category.objects.filter(type="I", company=request.session["company_id"]).order_by("name")
     message = None
+    error = None
 
     if request.method == "POST":
         due_date = datetime.strptime(request.POST["due_date"], "%Y-%m-%d").date()
@@ -180,12 +236,14 @@ def new_transaction(request):
         installments = request.POST["installments"]
         company = Company.objects.get(id=request.session["company_id"])
 
-        if has_installments:
-            new_date = due_date
+        print(installments)
+        print(replicate)
+        if has_installments and int(installments) > 12 and replicate != "O":
+            error = "Transactions with more than 12 installments can't replicate."
+        elif has_installments:
             for n in range(int(installments)):
-                transaction = Transaction(company=company, user=request.user, due_date=new_date, category=category, amount=amount, payment_info=payment_info, description=description, replicate=replicate, installments=installments, current_installment=int(n)+1)
+                transaction = Transaction(company=company, user=request.user, due_date=due_date + relativedelta(months = n), category=category, amount=amount, payment_info=payment_info, description=description, replicate=replicate, installments=installments, current_installment=int(n)+1)
                 transaction.save()
-                new_date = due_date + relativedelta(months = int(n)+1)
         else:
             transaction = Transaction(company=company, user=request.user, due_date=due_date, category=category, amount=amount, payment_info=payment_info, description=description, replicate=replicate)
             transaction.save()
@@ -194,7 +252,8 @@ def new_transaction(request):
     return render(request, "pennywise/new_transaction.html", {
         "expense_categories": expense_categories,
         "income_categories": income_categories,
-        "message": message
+        "message": message,
+        "error": error
     })
 
 
@@ -213,16 +272,20 @@ def archive(request):
         is_unsettled = bool(request.POST["is_unsettled"])
         expense_income_option = request.POST["expense_income_option"]
 
-        if(from_date and to_date):
-            search_data = Transaction.objects.filter(company= request.session["company_id"], due_date__gte=from_date, due_date__lte=to_date, description__icontains=search, category__type=expense_income_option, settle_date__isnull=is_unsettled).order_by("due_date")
-        elif(from_date):
-            search_data = Transaction.objects.filter(company= request.session["company_id"], due_date__gte=from_date, description__icontains=search, category__type=expense_income_option, settle_date__isnull=is_unsettled).order_by("due_date")
-        elif(to_date):
-            search_data = Transaction.objects.filter(company= request.session["company_id"], due_date__lte=to_date, description__icontains=search, category__type=expense_income_option, settle_date__isnull=is_unsettled).order_by("due_date")
-        else:
-            search_data = Transaction.objects.filter(company= request.session["company_id"], description__icontains=search, category__type=expense_income_option, settle_date__isnull=is_unsettled).order_by("due_date")
+        search_data = Transaction.objects.filter(company= request.session["company_id"], description__icontains=search, category__type=expense_income_option, settle_date__isnull=is_unsettled).order_by("due_date")
 
-        data_paginator = Paginator(search_data, 10)
+        if (is_unsettled):
+            if(from_date):
+                search_data = search_data.filter(due_date__gte=from_date)
+            if(to_date):
+                search_data = search_data.filter(due_date__lte=to_date)
+        else:
+            if(from_date):
+                search_data = search_data.filter(settle_date__gte=from_date)
+            if(to_date):
+                search_data = search_data.filter(settle_date__lte=to_date)
+
+        data_paginator = Paginator(search_data, 12)
         try:
             page_num = request.POST['page']
         except:
@@ -262,19 +325,28 @@ def edit(request):
         except:
             account = None
 
+        try:
+            apply_to_next_installments = request.POST["apply_to_next_installments"]
+        except:
+            apply_to_next_installments = None
+
         if request.POST["edit"] == "edit_transaction":
             due_date = datetime.strptime(request.POST["due_date"], "%Y-%m-%d").date()
             try:
                 settle_date = datetime.strptime(request.POST["settle_date"], "%Y-%m-%d").date()
                 old_settle_month_year = transaction.settle_date.replace(day=1)
-            except ValueError:
+            except:
                 settle_date = None
+
+            try:
+                settle_description = request.POST["settle_description"]
+            except:
+                settle_description = None
 
             category = Category.objects.get(id=request.POST["category"])
             amount = float(request.POST["amount"])
             payment_info = request.POST["payment_info"]
             description = request.POST["description"]
-            settle_description = request.POST["settle_description"]
             transaction.due_date = due_date
             transaction.settle_date = settle_date
             transaction.category = category
@@ -282,6 +354,18 @@ def edit(request):
             transaction.payment_info = payment_info
             transaction.description = description
             transaction.settle_description = settle_description
+            transaction.save()
+            message = "Transaction edited successfully."
+
+            # Update future installments amount and description, if apply_to_next_installments checked
+            if (apply_to_next_installments):
+                count = 1
+                for _ in range(transaction.current_installment+1, transaction.installments+1):
+                    next_transaction = Transaction.objects.get(id=transaction.id+count)
+                    next_transaction.description = transaction.description
+                    next_transaction.amount = transaction.amount
+                    next_transaction.save()
+                    count = count + 1
 
             # Check if transaction has been settled and adjust account balance
             if (transaction.settle_date):
@@ -305,11 +389,7 @@ def edit(request):
                         account.balance = float(account.balance) - old_amount
                         account.balance = float(account.balance) + amount
                     account.save()
-                '''
-                Ver isso aqui
-                Mudando a conta, tem que mudar o monthlyaccountbalance de qualquer jeito, se não mudar a conta, tem que ver se mudou o mêsano
-                VER SE DEU CERTO ISSO AÊ
-                '''
+
                 old_account_monthly_balance = MonthlyAccountBalance.objects.get(account=old_account, month_year=old_settle_month_year)
                 try:
                     account_monthly_balance = MonthlyAccountBalance.objects.get(account=account, month_year=settle_date.replace(day=1))
@@ -338,7 +418,7 @@ def edit(request):
                     account_monthly_balance.save()
 
                 transaction.save()
-                message = "Transaction edited successfully."
+                
        
         elif request.POST["edit"] == "delete_transaction":
             if (transaction.settle_date):
@@ -351,6 +431,16 @@ def edit(request):
                     account_monthly_balance.balance = float(account_monthly_balance.balance) - old_amount
                 account.save()
                 account_monthly_balance.save()
+
+            if (apply_to_next_installments):
+                count = 1
+                for _ in range(transaction.current_installment+1, transaction.installments+1):
+                    try:
+                        next_transaction = Transaction.objects.get(id=transaction.id+count)
+                        next_transaction.delete()
+                    except:
+                        pass
+                    count = count + 1
 
             transaction.delete()
             message = "Transaction deleted successfully."
@@ -407,16 +497,132 @@ def accounts(request):
                 "date": date.strftime("%B %Y")
             })
 
-    accounts = Account.objects.filter(company=request.session["company_id"])
+    accounts = Account.objects.filter(company=request.session["company_id"]).order_by("name")
+    total_balance = accounts.aggregate(Sum("balance"))["balance__sum"]
     return render(request, "pennywise/accounts.html", {
         "accounts": accounts,
+        "total_balance": total_balance,
         "today": today,
         "error": error
     })
 
 @login_required
 def overview(request):
-    return render(request, "pennywise/overview.html")
+    ''' Get all relevant data related to the selected month'''
+    error = None
+    if request.method == "POST":
+        date = datetime.strptime(request.POST["date"], "%Y-%m").date().replace(day=1)
+        end_of_month = date + relativedelta(months=1) - relativedelta(days=1)
+        current_month = datetime.today().date().replace(day=1)
+        expense_categories = Category.objects.filter(type="E", company=request.session["company_id"]).order_by("name")
+        income_categories = Category.objects.filter(type="I", company=request.session["company_id"]).order_by("name")
+        expense_month_balance = Transaction.objects.filter(category__type="E", company=request.session["company_id"], settle_date__gte=date, settle_date__lte=end_of_month).aggregate(Sum("amount"))["amount__sum"] or 0
+        income_month_balance = Transaction.objects.filter(category__type="I", company=request.session["company_id"], settle_date__gte=date, settle_date__lte=end_of_month).aggregate(Sum("amount"))["amount__sum"] or 0
+        # Check if selected date is of the future, in this case, unsettled transactions of current and past months should be ignore in future projections, as they may yet be settled in current month (past months unsettled transactions are always shown in current month overview)
+        if date > current_month:
+            projected_expense_month_balance = Transaction.objects.filter(category__type="E", company=request.session["company_id"], due_date__gte=date, due_date__lte=end_of_month, settle_date__isnull=True).aggregate(Sum("amount"))["amount__sum"] or 0
+            projected_income_month_balance = Transaction.objects.filter(category__type="I", company=request.session["company_id"], due_date__gte=date, due_date__lte=end_of_month, settle_date__isnull=True).aggregate(Sum("amount"))["amount__sum"] or 0
+        else:
+            # Projected balance considers everything that has been settled in the selected month plus everything that hasn't been settled yet with due dates within the selected date
+            projected_expense_month_balance = Transaction.objects.filter(category__type="E", company=request.session["company_id"], due_date__lte=end_of_month, settle_date__isnull=True).aggregate(Sum("amount"))["amount__sum"] or 0 
+            projected_expense_month_balance = projected_expense_month_balance + expense_month_balance
+            projected_income_month_balance = Transaction.objects.filter(category__type="I", company=request.session["company_id"], due_date__lte=end_of_month, settle_date__isnull=True).aggregate(Sum("amount"))["amount__sum"] or 0
+            projected_income_month_balance = projected_income_month_balance + income_month_balance
+        expense_data = []
+        income_data = []
+        projected_expense_data = []
+        projected_income_data = []
+        for category in expense_categories:
+            transactions = Transaction.objects.filter(category=category, settle_date__gte=date, settle_date__lte=end_of_month)
+            category_amount = transactions.aggregate(Sum("amount"))["amount__sum"] or 0
+            if category_amount:
+                data = {}
+                data["id"] = category.id
+                data["name"] = category.name
+                data["amount"] = category_amount
+                data["percent"] = category_amount / expense_month_balance * 100
+                data["transactions"] = transactions
+                expense_data.append(data)
+
+            if date >= current_month:
+                if date > current_month:
+                    projected_transactions = Transaction.objects.filter(category=category, due_date__gte=date, due_date__lte=end_of_month, settle_date__isnull=True)
+                    projected_category_amount = projected_transactions.aggregate(Sum("amount"))["amount__sum"] or 0
+                    projected_category_amount = projected_category_amount
+                else:
+                    projected_transactions = Transaction.objects.filter(category=category, due_date__lte=end_of_month, settle_date__isnull=True)
+                    projected_category_amount = projected_transactions.aggregate(Sum("amount"))["amount__sum"] or 0
+                    projected_category_amount = projected_category_amount + category_amount
+
+                if projected_category_amount:
+                    projected_data = {}
+                    projected_data["id"] = category.id + 0.1
+                    projected_data["name"] = category.name
+                    projected_data["amount"] = projected_category_amount
+                    projected_data["percent"] = projected_category_amount / projected_expense_month_balance * 100
+                    if date == current_month:
+                        projected_data["transactions"] = transactions
+                    projected_data["projected_transactions"] = projected_transactions
+                    projected_expense_data.append(projected_data)
+            
+        for category in income_categories:
+            transactions = Transaction.objects.filter(category=category, settle_date__gte=date, settle_date__lte=end_of_month)
+            category_amount = transactions.aggregate(Sum("amount"))["amount__sum"] or 0
+            if category_amount:
+                data = {}
+                data["id"] = category.id
+                data["name"] = category.name
+                data["amount"] = category_amount
+                data["percent"] = category_amount / income_month_balance * 100
+                data["transactions"] = transactions
+                income_data.append(data)
+
+            if date >= current_month:
+                if date > current_month:
+                    projected_transactions = Transaction.objects.filter(category=category, due_date__gte=date, due_date__lte=end_of_month, settle_date__isnull=True)
+                    projected_category_amount = projected_transactions.aggregate(Sum("amount"))["amount__sum"] or 0
+                    projected_category_amount = projected_category_amount
+                else:
+                    projected_transactions = Transaction.objects.filter(category=category, due_date__lte=end_of_month, settle_date__isnull=True)
+                    projected_category_amount = projected_transactions.aggregate(Sum("amount"))["amount__sum"] or 0
+                    projected_category_amount = projected_category_amount + category_amount
+                if projected_category_amount:
+                    projected_data = {}
+                    projected_data["id"] = category.id + 0.1
+                    projected_data["name"] = category.name
+                    projected_data["amount"] = projected_category_amount
+                    projected_data["percent"] = projected_category_amount / projected_income_month_balance * 100
+                    if date == current_month:
+                        projected_data["transactions"] = transactions
+                    projected_data["projected_transactions"] = projected_transactions
+                    projected_income_data.append(projected_data)
+            
+            expense_income_exists = expense_data or income_data
+            projected_exists = projected_expense_data or projected_income_data
+        if (expense_data or income_data or projected_expense_data or projected_income_data):
+            return render(request, "pennywise/overview.html", {
+                "date": date.strftime("%B %Y"),
+                "expense_data": expense_data,
+                "income_data": income_data,
+                "projected_expense_data": projected_expense_data,
+                "projected_income_data": projected_income_data,
+                "expense_month_balance": expense_month_balance,
+                "income_month_balance": income_month_balance,
+                "projected_expense_month_balance": projected_expense_month_balance,
+                "projected_income_month_balance": projected_income_month_balance,
+                "month_result": income_month_balance - expense_month_balance,
+                "projected_month_result": projected_income_month_balance - projected_expense_month_balance,
+                "expense_income_exists": expense_income_exists,
+                "projected_exists": projected_exists
+            })
+        else:
+            error = "No activity for the selected month"
+    
+    accounts = Account.objects.filter(company=request.session["company_id"]).order_by("name")
+    return render(request, "pennywise/overview.html", {
+        "accounts": accounts,
+        "error": error
+    })
 
 @login_required
 def settings(request):

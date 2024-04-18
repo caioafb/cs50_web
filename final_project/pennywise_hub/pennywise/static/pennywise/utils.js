@@ -31,6 +31,17 @@ function checkInstallments(el) {
     }
 }
 
+function disableInstallment() {
+    el = document.getElementById("has_installments");
+    el.setAttribute("disabled", "");
+    el.checked = false;
+}
+
+function enableInstallment() {
+    el = document.getElementById("has_installments");
+    el.removeAttribute("disabled");
+}
+
 function showMore(id) {
     el_button = document.getElementsByClassName(id)[0];
     el = document.getElementById(id);
@@ -71,12 +82,12 @@ function swap_overview_tab(el) {
         document.getElementById("overview").style.display = "block";
         document.getElementById("projection").style.display = "none";
         document.getElementById("projection-button").removeAttribute("disabled");
-        el.setAttribute("disabled", "")
+        el.setAttribute("disabled", "");
     }
     else {
         document.getElementById("projection").style.display = "block";
         document.getElementById("overview").style.display = "none";
         document.getElementById("overview-button").removeAttribute("disabled");
-        el.setAttribute("disabled", "")
+        el.setAttribute("disabled", "");
     }
 }

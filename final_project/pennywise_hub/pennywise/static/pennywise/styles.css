@@ -30,13 +30,11 @@
 }
 
 .expired-expense {
-    color: #DB4437;
-    font-weight: bold;
+    color: #EE4B2B;
 }
 
 .expired-income {
     color: darkgoldenrod;
-    font-weight: bold;
 }
 
 .settled {
@@ -53,7 +51,7 @@
 
 .slide-down-button {
     color: black;
-    text-align: center;
+    text-align: right;
 }
 
 .slide-down-button:hover {
@@ -62,10 +60,6 @@
 
 .edit-button:hover {
     cursor: pointer;
-}
-
-.settle-description {
-    text-align:right;
 }
 
 @keyframes hide {

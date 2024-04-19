@@ -173,22 +173,24 @@
                                 {% for transaction in data.transactions %}
                                     <tr>
                                         <td width="20"></td>
-                                        {% if transaction.installments %}
-                                            <td>• {{ transaction.description }} - {{ transaction.current_installment }} of {{ transaction.installments }}</td>
-                                        {% else %}
-                                            <td>• {{ transaction.description }}</td>
-                                        {% endif %}
+                                        <td>
+                                            • {{ transaction.description }} 
+                                            {% if transaction.installments %}
+                                                - {{ transaction.current_installment }} of {{ transaction.installments }}
+                                            {% endif %}
+                                        </td>
                                         <td>{{ transaction.amount|floatformat:2 }}</td>
                                     </tr>
                                 {% endfor %}
                                 {% for transaction in data.projected_transactions %}
                                     <tr>
                                         <td width="20"></td>
-                                        {% if transaction.installments %}
-                                            <td>• {{ transaction.description }} - {{ transaction.current_installment }} of {{ transaction.installments }}</td>
-                                        {% else %}
-                                            <td>• {{ transaction.description }}</td>
-                                        {% endif %}
+                                        <td>
+                                            • {{ transaction.description }} 
+                                            {% if transaction.installments %}
+                                                - {{ transaction.current_installment }} of {{ transaction.installments }}
+                                            {% endif %}
+                                        </td>
                                         <td>{{ transaction.amount|floatformat:2 }}</td>
                                     </tr>
                                 {% endfor %}

@@ -104,6 +104,9 @@ class Transaction(models.Model):
         date = self.due_date.replace(day=1) + relativedelta(months=1) - relativedelta(days=1)
         return date == self.due_date
     
+    def is_weekend(self):
+        return self.due_date.weekday() > 4
+    
     def __str__(self):
         return f"{self.company} - {self.id}"
     

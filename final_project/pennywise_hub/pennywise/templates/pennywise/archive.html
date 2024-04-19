@@ -97,10 +97,9 @@
                                         <form action="{% url 'edit' %}" method="get">
                                             <input type="hidden" name="transaction_id" value="{{ transaction.id }}">
                                             <span class="edit-button" onclick="submitForm(this)">
+                                                {{ transaction.description }} 
                                                 {% if transaction.installments != None %}
-                                                    {{ transaction.description }} - {{ transaction.current_installment }} of {{ transaction.installments }}
-                                                {% else %}
-                                                    {{ transaction.description }}
+                                                    - {{ transaction.current_installment }} of {{ transaction.installments }}
                                                 {% endif %}
                                             </span>
                                         </form>

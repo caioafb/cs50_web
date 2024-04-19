@@ -13,5 +13,6 @@ urlpatterns = [
     path("edit", views.edit, name="edit"),
     path("accounts", views.accounts, name="accounts"),
     path("account_statement", views.accounts, name="account_statement"),
-    path("overview", views.overview, name="overview")
+    path("overview", views.overview, name="overview"),
+    path("swap_company", views.swap_company, name="swap_company")
 ]

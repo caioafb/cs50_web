@@ -5,8 +5,8 @@
     <div class="forms">
         <h2>Register</h2>
 
-        {% if message %}
-            <div>{{ message }}</div>
+        {% if error %}
+            <div id="message" class="alert alert-danger">{{ error }}</div>
         {% endif %}
 
         <form action="{% url 'register' %}" method="post">

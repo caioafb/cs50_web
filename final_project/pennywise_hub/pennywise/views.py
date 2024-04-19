@@ -22,22 +22,24 @@ def register(request):
         confirmation = request.POST["confirmation"]
         if password != confirmation:
             return render(request, "pennywise/register.html", {
-                "message": "Passwords must match."
+                "error": "Passwords must match."
             })
 
+        '''
         # Check if company name is taken
         if Company.objects.filter(name=company_name).exists():
             return render(request, "pennywise/register.html", {
-                "message": "Company name already taken."
+                "error": "Company name already taken."
             })
-        
+        '''
+
         # Attempt to create new user
         try:
             user = User.objects.create_user(username, email, password)
             user.save()
         except IntegrityError:
             return render(request, "pennywise/register.html", {
-                "message": "Username already taken."
+                "error": "Username unavailable."
             })
         
         # Create company
@@ -85,7 +87,7 @@ def login_view(request):
             return HttpResponseRedirect(reverse("index"))
         else:
             return render(request, "pennywise/login.html", {
-                "message": "Invalid username and/or password."
+                "error": "Invalid username and/or password."
             })
     else:
         return render(request, "pennywise/login.html")
@@ -112,7 +114,6 @@ def index(request):
             elif transaction. replicate == "Y":
                 months = 12
             
-            cont = 0
             while transaction.due_date < today:
                 due_date = transaction.due_date + relativedelta(months=months)
                 new_transaction = Transaction(company=transaction.company, user=transaction.user, due_date=due_date, category=transaction.category, amount=transaction.amount, payment_info=transaction.payment_info, description=transaction.description, replicate=transaction.replicate, installments=transaction.installments, current_installment=transaction.current_installment, parent_id=transaction.id)
@@ -140,11 +141,6 @@ def index(request):
                 transaction.save()
                 transaction = new_transaction
 
-                cont = cont + 1
-                if cont == 20:
-                    break
-
-                    
     message = None
     error = None
     came_from_income = False # By default the page loads on the expenses tab, this variable changes to the income tab if a form was sent from income
@@ -597,8 +593,8 @@ def overview(request):
                     projected_data["projected_transactions"] = projected_transactions
                     projected_income_data.append(projected_data)
             
-            expense_income_exists = expense_data or income_data
-            projected_exists = projected_expense_data or projected_income_data
+        expense_income_exists = expense_data or income_data
+        projected_exists = projected_expense_data or projected_income_data
         if (expense_data or income_data or projected_expense_data or projected_income_data):
             return render(request, "pennywise/overview.html", {
                 "date": date.strftime("%B %Y"),
@@ -655,7 +651,37 @@ def settings(request):
             except IntegrityError:
                 error = "Account name unavailable."
 
+        elif request.POST["option"] == "new_company":
+            new_company = request.POST["new_company"]
+            # Create company
+            try:
+                company = Company(name=new_company, user=request.user)
+                company.save()
+            except IntegrityError:
+                return render(request, "pennywise/settings.html", {
+                    "error": "Company name must be different."
+                })
+
+            # Create company-user relation
+            company_user = CompanyUser(user=request.user, company=company)
+            company_user.save()
+
+            # Create a database date stores for replicating purposes
+            timer = Timer(db_date=datetime.today().date(), company=company)
+            timer.save()
+            companies = request.session["companies"]
+            companies.append(company.name)
+            request.session["companies"] = companies
+            message = "New company saved."
+
     return render(request, "pennywise/settings.html", {
         "message": message,
         "error": error,
     })
+
+@login_required
+def swap_company(request):
+    selected_company = Company.objects.get(name=request.POST["selected_company"], user=request.user)
+    request.session["company"] = selected_company.name
+    request.session["company_id"] = selected_company.id
+    return HttpResponseRedirect(reverse("index"))

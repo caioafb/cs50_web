@@ -52,10 +52,9 @@
                                 <form action="{% url 'edit' %}" method="get">
                                     <input type="hidden" name="transaction_id" value="{{ expense.id }}">
                                     <span class="edit-button" onclick="submitForm(this)">
+                                        {{ expense.description }} 
                                         {% if expense.installments %}
-                                            {{ expense.description }} - {{ expense.current_installment }} of {{ expense.installments }}
-                                        {% else %}
-                                            {{ expense.description }}
+                                            - {{ expense.current_installment }} of {{ expense.installments }}
                                         {% endif %}
                                     </span>
                                 </form>
@@ -118,10 +117,12 @@
                                 <form action="{% url 'edit' %}" method="get">
                                     <input type="hidden" name="transaction_id" value="{{ expense.id }}">
                                     <span class="edit-button" onclick="submitForm(this)">
+                                        {% if expense.is_weekend %}
+                                            <strong><small>[Weekend]</small></strong>
+                                        {% endif %}
+                                        {{ expense.description }} 
                                         {% if expense.installments %}
-                                            {{ expense.description }} - {{ expense.current_installment }} of {{ expense.installments }}
-                                        {% else %}
-                                            {{ expense.description }}
+                                            - {{ expense.current_installment }} of {{ expense.installments }}
                                         {% endif %}
                                     </span>
                                 </form>
@@ -185,10 +186,9 @@
                                     <form action="{% url 'edit' %}" method="get">
                                         <input type="hidden" name="transaction_id" value="{{ expense.id }}">
                                         <span class="edit-button" onclick="submitForm(this)">
+                                            {{ expense.description }} 
                                             {% if expense.installments %}
-                                                {{ expense.description }} - {{ expense.current_installment }} of {{ expense.installments }}
-                                            {% else %}
-                                                {{ expense.description }}
+                                                - {{ expense.current_installment }} of {{ expense.installments }}
                                             {% endif %}
                                         </span>
                                     </form>
@@ -238,10 +238,9 @@
                                 <form action="{% url 'edit' %}" method="get">
                                     <input type="hidden" name="transaction_id" value="{{ income.id }}">
                                     <span class="edit-button" onclick="submitForm(this)">
+                                        {{ income.description }} 
                                         {% if income.installments %}
-                                            {{ income.description }} - {{ income.current_installment }} of {{ income.installments }}
-                                        {% else %}
-                                            {{ income.description }}
+                                            - {{ income.current_installment }} of {{ income.installments }}
                                         {% endif %}
                                     </span>
                                 </form>
@@ -305,10 +304,9 @@
                                 <form action="{% url 'edit' %}" method="get">
                                     <input type="hidden" name="transaction_id" value="{{ income.id }}">
                                     <span class="edit-button" onclick="submitForm(this)">
+                                        {{ income.description }} 
                                         {% if income.installments %}
-                                            {{ income.description }} - {{ income.current_installment }} of {{ income.installments }}
-                                        {% else %}
-                                            {{ income.description }}
+                                            - {{ income.current_installment }} of {{ income.installments }}
                                         {% endif %}
                                     </span>
                                 </form>
@@ -373,10 +371,9 @@
                                     <form action="{% url 'edit' %}" method="get">
                                         <input type="hidden" name="transaction_id" value="{{ income.id }}">
                                         <span class="edit-button" onclick="submitForm(this)">
+                                            {{ income.description }} 
                                             {% if income.installments %}
-                                                {{ income.description }} - {{ income.current_installment }} of {{ income.installments }}
-                                            {% else %}
-                                                {{ income.description }}
+                                                - {{ income.current_installment }} of {{ income.installments }}
                                             {% endif %}
                                         </span>
                                     </form>

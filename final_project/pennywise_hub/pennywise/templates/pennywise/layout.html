@@ -28,6 +28,7 @@
                             <li class="nav-item">
                                 <div class="nav-link">
                                     <form action="/swap_company" method="post">
+                                        {% csrf_token %}
                                         <select class="form-select align-items-center" name="selected_company" id="selected_company" onchange="this.form.submit()">
                                             <option value="none" selected="selected" disabled>Swap company</option>
                                             {% for company in request.session.companies %}

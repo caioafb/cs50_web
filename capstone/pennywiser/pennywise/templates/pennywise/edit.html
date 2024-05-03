@@ -1,0 +1,101 @@
+{% extends "pennywise/layout.html" %}
+
+{% block body %}
+
+    <div class="forms">
+        <h2>Edit Transaction</h2>
+
+        {% if message %}
+            <div id="message" class="alert alert-success">{{ message }}</div>
+        {% elif error %}
+            <div id="message" class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        
+        <form action="{% url 'edit' %}" id="edit_form" method="post">
+            {% csrf_token %}
+            <div class="form-floating mb-3">
+                <input class="form-control" autocomplete="off" id="due_date" name="due_date" type="date" value="{{ transaction.due_date|date:"Y-m-d" }}" required>
+                <label for="due_date">Due date</label>
+            </div>
+            <div class="form-floating mb-3">
+                {% if transaction.settle_date %}
+                    <input class="form-control" autocomplete="off" id="settle_date" name="settle_date" type="date" value="{{ transaction.settle_date|date:"Y-m-d" }}" required>
+                {% else %}
+                    <input class="form-control" autocomplete="off" id="settle_date" name="settle_date" type="date" disabled>
+                {% endif %}
+                <label for="settle_date">Settle date</label>
+            </div>
+            <div class="form-floating mb-3">
+                {% if transaction.settle_date %}
+                    <select class="form-control" name="account" id="account" required>
+                        {% for account in accounts %}
+                            {% if account.id == transaction.settle_account.id %}
+                                <option value="{{ account.id }}" selected>{{ account.name }}</option>
+                            {% else %}
+                                <option value="{{ account.id }}">{{ account.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <select class="form-control" name="account" id="account" disabled></select>
+                {% endif %}
+                <label for="account">Account</label>
+            </div>
+            <div class="form-floating mb-3">
+                <select class="form-control" name="category" id="category" required>
+                    <option value="none" disabled>-- {{ transaction.category.get_type_display }} categories --</option>
+                    {% for category in categories %}
+                        {% if category.id == transaction.category.id %}
+                            <option value="{{ category.id }}" selected>{{ category.name }}</option>
+                        {% else %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <label for="category">Category</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input class="form-control" autocomplete="off" id="amount" name="amount" type="number" min="0" step="0.01" value="{{ transaction.amount }}">
+                <label for="amount">Amount</label>
+            </div>
+            <div class="form-floating mb-3">
+                <textarea class="form-control" maxlength="255" autocomplete="off" id="payment_info" name="payment_info">{{ transaction.payment_info }}</textarea>
+                <label for="payment_info">Payment Info</label>
+            </div>
+            <div class="form-floating mb-3">
+                <textarea class="form-control" maxlength="255" autocomplete="off" id="description" name="description" required>{{ transaction.description }}</textarea>
+                <label for="description">Description</label>
+            </div>
+            <div class="form-floating mb-3">
+                {% if transaction.settle_date %}
+                    <textarea class="form-control" maxlength="255" autocomplete="off" id="settle_description" name="settle_description">{{ transaction.settle_description }}</textarea>
+                {% else %}
+                    <textarea class="form-control" maxlength="255" autocomplete="off" id="settle_description" name="settle_description" disabled></textarea>
+                {% endif %}
+                <label for="settle_description">Settle description</label>
+            </div>
+            <div class="check-form">
+                <p>Replicate: <strong>{{ transaction.get_replicate_display }}</strong></p>
+            </div>
+            {% if transaction.installments %}
+                <div class="check-form">
+                    <p>Installment: <strong>{{ transaction.current_installment }} / {{ transaction.installments }}</strong></p>
+                </div>
+                {% if not transaction.settle_date %}
+                    <div class="check-form">
+                        <label class="form-check-label" for="apply_to_next_installments">Apply to next installments&nbsp;</label>
+                        <input class="form-check-input" type="checkbox" value=True name="apply_to_next_installments" id="apply_to_next_installments">
+                        &nbsp;<abbr title="Amount, description and deletition only">⍰</abbr>
+                    </div>
+                    <br>
+                {% endif %}
+            {% endif %}
+            <input type="hidden" name="transaction_id" value="{{ transaction.id }}">
+            <button class="btn btn-primary" name="edit" value="edit_transaction" type="submit">Save</button>
+            <button class="btn btn-secondary position-absolute start-50 translate-middle-x" name="edit" value="copy_transaction" type="submit">Copy</button>
+            <button class="btn btn-warning" id="confirmation" name="edit" value="delete_transaction" type="submit" style="display:none" ;>Delete?</button>
+        </form>
+        <button class="btn btn-danger" id="delete" onclick="showDeleteConfirmation()">Delete</button>
+    </div>
+
+{% endblock %}

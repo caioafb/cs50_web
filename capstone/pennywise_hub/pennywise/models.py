@@ -98,8 +98,7 @@ class Transaction(models.Model):
     payment_slip = models.ImageField(null=True, blank=True, upload_to="pennywise/files/payment_slips")
     
     def has_expired(self):
-        today = datetime.strptime("2024-04-30", "%Y-%m-%d").date()
-        #today = datetime.today().date()
+        today = datetime.today().date()
         return self.due_date < today
     
     def is_last_day_of_month(self):

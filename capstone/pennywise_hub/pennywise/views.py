@@ -11,6 +11,7 @@ from django.db.models import Sum, Q
 
 from .models import User, Company, CompanyUser, Category, Account, Transaction, MonthlyAccountBalance, Timer
 
+
 def register(request):
     if request.method == "POST":
         username = request.POST["username"]
@@ -103,18 +104,17 @@ def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
 
+
 @login_required
 def index(request):
-    timer = str(Timer.objects.get(company=request.session["company_id"]))
-    timer = datetime.strptime(timer, "%Y-%m-%d")
-    today = timer # Remove this after video
-    #today = datetime.today().date()
+    timer = Timer.objects.get(company=request.session["company_id"])
+    today = datetime.today().date()
 
-    '''
     if (timer.db_date != today):
         timer.db_date = today
         timer.save()
-        expired_transactions = Transaction.objects.filter(~Q(replicate="O"), company=request.session["company_id"], due_date__lt=today, has_replicated=False).exclude(current_installment__gt=1)
+        expired_transactions = Transaction.objects.filter(
+            ~Q(replicate="O"), company=request.session["company_id"], due_date__lt=today, has_replicated=False).exclude(current_installment__gt=1)
         for transaction in expired_transactions:
             if transaction.replicate == "M":
                 months = 1
@@ -127,7 +127,8 @@ def index(request):
             
             while transaction.due_date < today:
                 due_date = transaction.due_date + relativedelta(months=months)
-                new_transaction = Transaction(company=transaction.company, user=transaction.user, due_date=due_date, category=transaction.category, amount=transaction.amount, payment_info=transaction.payment_info, description=transaction.description, replicate=transaction.replicate, installments=transaction.installments, current_installment=transaction.current_installment, parent_id=transaction.id)
+                new_transaction = Transaction(company=transaction.company, user=transaction.user, due_date=due_date, category=transaction.category, amount=transaction.amount, payment_info=transaction.payment_info,
+                                              description=transaction.description, replicate=transaction.replicate, installments=transaction.installments, current_installment=transaction.current_installment, parent_id=transaction.id)
                 new_transaction.save()
                 # Check if new transaction due_date should be last day of month, comparing with parent's transaction
                 if transaction.is_last_day_of_month() and not new_transaction.is_last_day_of_month():
@@ -145,17 +146,18 @@ def index(request):
 
                 if transaction.replicate == "Y" and transaction.installments:
                     for i in range(2, int(transaction.installments)+1):
-                        new_transaction_installments = Transaction(company=transaction.company, user=transaction.user, due_date=new_transaction.due_date + relativedelta(months = i-1), category=transaction.category, amount=transaction.amount, payment_info=transaction.payment_info, description=transaction.description, replicate=transaction.replicate, installments=transaction.installments, current_installment=i)
+                        new_transaction_installments = Transaction(company=transaction.company, user=transaction.user, due_date=new_transaction.due_date + relativedelta(months=i-1), category=transaction.category,
+                                                                   amount=transaction.amount, payment_info=transaction.payment_info, description=transaction.description, replicate=transaction.replicate, installments=transaction.installments, current_installment=i)
                         new_transaction_installments.save()
                     
                 transaction.has_replicated = True
                 transaction.save()
                 transaction = new_transaction
-    '''
 
     message = None
     error = None
-    came_from_income = False # By default the page loads on the expenses tab, this variable changes to the income tab if a form was sent from income
+    # By default the page loads on the expenses tab, this variable changes to the income tab if a form was sent from income
+    came_from_income = False 
     if request.method == "POST":
         settle_description = request.POST["settle_description"]
         amount = request.POST["amount"]
@@ -260,16 +262,20 @@ def new_transaction(request):
             error = "Transactions with more than 12 installments can't replicate."
         elif has_installments:
             for n in range(int(installments)):
-                transaction = Transaction(company=company, user=request.user, due_date=due_date + relativedelta(months = n), category=category, amount=amount, payment_info=payment_info, description=description, replicate=replicate, installments=installments, current_installment=int(n)+1)
+                transaction = Transaction(company=company, user=request.user, due_date=due_date + relativedelta(months=n), category=category, amount=amount,
+                                          payment_info=payment_info, description=description, replicate=replicate, installments=installments, current_installment=int(n)+1)
                 transaction.save()
         else:
-            transaction = Transaction(company=company, user=request.user, due_date=due_date, category=category, amount=amount, payment_info=payment_info, description=description, replicate=replicate)
+            transaction = Transaction(company=company, user=request.user, due_date=due_date, category=category,
+                                      amount=amount, payment_info=payment_info, description=description, replicate=replicate)
             transaction.save()
         message = "Transaction saved successfully."
 
+    today = datetime.today().date()
     return render(request, "pennywise/new_transaction.html", {
         "expense_categories": expense_categories,
         "income_categories": income_categories,
+        "today": today,
         "message": message,
         "error": error
     })
@@ -311,7 +317,7 @@ def archive(request):
         except:
             page_num = None
         page = data_paginator.get_page(page_num)
-        iterator = range(1,page.paginator.num_pages+1)
+        iterator = range(1, page.paginator.num_pages+1)
         max_page = max(iterator)
 
         search_parameters = {
@@ -389,7 +395,7 @@ def edit(request):
 
             # Check if transaction has been settled and adjust account balance
             if (transaction.settle_date):
-                old_account = Account.objects.get(id = transaction.settle_account.id)
+                old_account = Account.objects.get(id=transaction.settle_account.id)
                 if (transaction.settle_account != account):
                     if (transaction.category.type == "E"):
                         old_account.balance = float(old_account.balance) + old_amount
@@ -497,9 +503,7 @@ def edit(request):
 
 @login_required
 def accounts(request):
-    today = str(Timer.objects.get(company=request.session["company_id"]))
-    today = datetime.strptime(today, "%Y-%m-%d") # Remove this after video
-    #today = datetime.today().date()
+    today = datetime.today().date()
     error = None
     
     if request.method == "POST":

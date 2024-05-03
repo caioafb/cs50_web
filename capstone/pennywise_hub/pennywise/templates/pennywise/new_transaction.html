@@ -13,12 +13,11 @@
         
         <form action="{% url 'new_transaction' %}" id="transaction_form" method="post">
             {% csrf_token %}
-            
+            <div class="form-floating mb-3">
+                <input class="form-control" autocomplete="off" id="due_date" name="due_date" type="date" value="{{ today|date:"Y-m-d" }}">
+                <label for="due_date">Due date</label>
+            </div>
             {% if transaction %}
-                <div class="form-floating mb-3">
-                    <input class="form-control" autocomplete="off" id="due_date" name="due_date" type="date" value="{{ today|date:"Y-m-d" }}">
-                    <label for="due_date">Due date</label>
-                </div>
                 <div class="form-floating mb-3">
                     <select class="form-control" name="category" id="category" required>
                         <option value="none" disabled>-- {{ transaction.category.get_type_display }} categories --</option>
@@ -45,10 +44,6 @@
                     <label for="description">Description</label>
                 </div>
             {% else %}
-                <div class="form-floating mb-3">
-                    <input class="form-control" autocomplete="off" id="due_date" name="due_date" type="date" required>
-                    <label for="due_date">Due date</label>
-                </div>
                 <div class="form-floating mb-3">
                     <select class="form-control" name="category" id="category" required>
                         <option value="none" selected disabled>Choose category</option>

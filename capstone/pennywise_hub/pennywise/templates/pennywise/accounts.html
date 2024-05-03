@@ -1,0 +1,62 @@
+{% extends "pennywise/layout.html" %}
+
+{% block body %}
+
+    <div class="forms">
+        <h2>Accounts</h2>
+        <br>
+        {% if message %}
+            <div id="message" class="alert alert-success">{{ message }}</div>
+        {% elif error %}
+            <div id="message" class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        {% if accounts %}
+            <form action="{% url 'account_statement' %}" method="post">
+                {% csrf_token %}
+                <div class="form-floating mb-3">
+                    <select class="form-control" name="account" id="account" onchange="this.form.submit()" required>
+                        <option value="none" selected disabled>Select an account</option>
+                        {% for account in accounts %}
+                            <option value="{{ account.id }}">{{ account.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="account">Account</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input class="form-control" autocomplete="off" id="date" name="date" type="month" value="{{ today|date:"Y-m" }}" required>
+                    <label for="date">Date</label>
+                </div>
+            </form>
+            <br><br>
+            <h4>Accounts summary</h4>
+            <table class="table table-hover table-light table-striped">
+                {% for account in accounts %}
+                    <tr>
+                        <td><h6>{{ account.name }}</h6></td>
+                        {% if account.balance < 0 %}
+                            <td><h6>$ <span class="expired-expense">{{ account.balance|floatformat:2 }}</span></h6></td>
+                        {% else %}
+                            <td><h6>$ {{ account.balance|floatformat:2 }}</h6></td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <p>Create an account in the settings menu.</p>
+                {% endfor %}
+                {% if total_balance %}
+                    <tr>
+                        {% if total_balance < 0 %}
+                            <td colspan="2" style="text-align:right"><h6>Total: $ <span class="expired-expense">{{ total_balance|floatformat:2 }}</span></h6></td>
+                        {% else %}
+                            <td colspan="3" style="text-align:right"><h6>Total: $ {{ total_balance|floatformat:2 }}</h6></td>
+                        {% endif %}
+                    </tr>
+                {% endif %}
+            </table>
+        {% else %}
+            <p>Create an account in the settings menu.</p>
+        {% endif %}
+    </div>
+
+{% endblock %}

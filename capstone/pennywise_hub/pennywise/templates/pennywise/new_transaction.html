@@ -1,0 +1,117 @@
+{% extends "pennywise/layout.html" %}
+
+{% block body %}
+
+    <div class="forms">
+        <h2>New Transaction</h2>
+
+        {% if message %}
+            <div id="message" class="alert alert-success">{{ message }}</div>
+        {% elif error %}
+            <div id="message" class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        
+        <form action="{% url 'new_transaction' %}" id="transaction_form" method="post">
+            {% csrf_token %}
+            
+            {% if transaction %}
+                <div class="form-floating mb-3">
+                    <input class="form-control" autocomplete="off" id="due_date" name="due_date" type="date" value="{{ today|date:"Y-m-d" }}">
+                    <label for="due_date">Due date</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <select class="form-control" name="category" id="category" required>
+                        <option value="none" disabled>-- {{ transaction.category.get_type_display }} categories --</option>
+                        {% for category in categories %}
+                            {% if category.id == transaction.category.id %}
+                                <option value="{{ category.id }}" selected>{{ category.name }}</option>
+                            {% else %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <label for="category">Category</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input class="form-control" autocomplete="off" id="amount" name="amount" type="number" min="0" step="0.01" value="{{ transaction.amount }}">
+                    <label for="amount">Amount</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <textarea class="form-control" maxlength="255" autocomplete="off" id="payment_info" name="payment_info">{{ transaction.payment_info }}</textarea>
+                    <label for="payment_info">Payment Info</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <textarea class="form-control" maxlength="255" autocomplete="off" id="description" name="description" required>{{ transaction.description }}</textarea>
+                    <label for="description">Description</label>
+                </div>
+            {% else %}
+                <div class="form-floating mb-3">
+                    <input class="form-control" autocomplete="off" id="due_date" name="due_date" type="date" required>
+                    <label for="due_date">Due date</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <select class="form-control" name="category" id="category" required>
+                        <option value="none" selected disabled>Choose category</option>
+                        <option value="none" disabled>-- Expense --</option>
+                        {% for category in expense_categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% empty %}
+                            <option value="none" disabled>No expense categories yet.</option>
+                        {% endfor %}
+                        <option value="none" disabled>-- Income --</option>
+                        {% for category in income_categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% empty %}
+                            <option value="none" disabled>No income categories yet.</option>
+                        {% endfor %}
+                    </select>
+                    <label for="category">Category</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input class="form-control" autocomplete="off" id="amount" name="amount" type="number" min="0" step="0.01" required>
+                    <label for="amount">Amount</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <textarea class="form-control" maxlength="255" autocomplete="off" id="payment_info" name="payment_info"></textarea>
+                    <label for="payment_info">Payment Info</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <textarea class="form-control" maxlength="255" autocomplete="off" id="description" name="description" required></textarea>
+                    <label for="description">Description</label>
+                </div>
+            {% endif %}
+            <div class="check-form">
+                <p class="form-check-inline">Replicate:</p>
+                <div class="form-check-inline">
+                    <input class="form-check-input" type="radio" id="once" name="replicate" value="O" checked="checked" onchange="enableInstallment()">
+                    <label class="form-check-label" for="replicate">Once</label>
+                </div>
+                <div class="form-check-inline">
+                    <input class="form-check-input" type="radio" id="monthly" name="replicate" value="M" onchange="disableInstallment()">
+                    <label class="form-check-label" for="replicate">Monthly</label>
+                </div>
+                <div class="form-check-inline">
+                    <input class="form-check-input" type="radio" id="bimonthly" name="replicate" value="B" onchange="disableInstallment()">
+                    <label class="form-check-label" for="replicate">Bimonthly</label>
+                </div>
+                <div class="form-check-inline">
+                    <input class="form-check-input" type="radio" id="quarterly" name="replicate" value="Q" onchange="disableInstallment()">
+                    <label class="form-check-label" for="replicate">Quarterly</label>
+                </div>
+                <div class="form-check-inline mb-3">
+                    <input class="form-check-input" type="radio" id="yearly" name="replicate" value="Y" onchange="enableInstallment()">
+                    <label class="form-check-label" for="replicate">Yearly</label>
+                </div>
+            </div>
+            <div class="check-form">
+                <label class="form-check-label" for="has_installments">Has installments&nbsp;</label>
+                <input class="form-check-input" type="checkbox" value=True name="has_installments" id="has_installments" onchange="showInstallments(this)">
+            </div>
+            <div class="form-group">
+                <input class="form-control mx-auto" autocomplete="off" autofocus id="installments" name="installments" type="number" min="2" step="1" onchange="checkInstallments(this)">
+            </div>
+            <input class="btn btn-primary" type="submit" value="Submit">
+        </form>
+    </div>
+
+{% endblock %}
